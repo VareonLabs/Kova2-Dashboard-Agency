@@ -12,9 +12,10 @@ export function clientWorkspace(data,id) {
   const projects=list(data,'projects').filter(p=>p.clientId===id),projectIds=new Set(projects.map(p=>p.id));
   const linked=r=>r.clientId===id||!!r.projectId&&projectIds.has(r.projectId);
   const result={client,projects};
-  for(const key of ['tasks','contracts','posts','notes','invoices','expenses','resources','websites','prospects','documents','meetingNotes'])result[key]=list(data,key).filter(linked);
+  for(const key of ['tasks','contracts','posts','notes','invoices','expenses','resources','websites','prospects','documents','meetingNotes','proposals','retainers'])result[key]=list(data,key).filter(linked);
   const address=client.email?.trim().toLowerCase();
   result.emails=list(data,'emails').filter(m=>activeMail(m)&&(linked(m)||!m.clientId&&address&&emailAddresses([m.from,m.to,...(m.cc||[]),...(m.bcc||[])]).includes(address))).map(m=>({...m,matchedBy:m.clientId===id?'Linked':m.projectId&&projectIds.has(m.projectId)?'Project':'Email address'}));
+  const proposalIds=new Set(result.proposals.map(p=>p.id));result.variations=list(data,'variations').filter(v=>proposalIds.has(v.proposalId));
   const invoiceIds=new Set(result.invoices.map(i=>i.id));result.payments=list(data,'payments').filter(p=>invoiceIds.has(p.invoiceId));
   const mediaIds=new Set(result.posts.flatMap(p=>p.mediaIds||[]));
   result.files=list(data,'media').filter(m=>linked(m)||mediaIds.has(m.id)).map(m=>({...m,fileType:'media'}));
