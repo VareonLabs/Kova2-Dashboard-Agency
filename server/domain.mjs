@@ -307,7 +307,7 @@ export function saveRecord(store, collection, input, id, actor='You',options={})
   if(collection==='tasks')data.completedAt=data.status==='Done'?(previous.status==='Done'?previous.completedAt||'':new Date().toISOString()):'';
   if(collection==='tasks'&&options.undoOf)data.completedAt=input.completedAt||'';
   const result = store.put(collection, {...previous, ...data,...(options.restore?{createdAt:input.createdAt}:{}), ...(id ? {id} : {})},{actor,undoOf:options.undoOf});
-  if(collection==='proposals'&&result.status==='Sent'&&previous.status!=='Sent')for(const d of store.list('deals').filter(d=>d.proposalId===result.id&&d.stage==='Qualified'))store.put('deals',{...d,stage:'Proposal sent'},{actor});
+  if(collection==='proposals'&&result.status==='Sent'&&previous.status!=='Sent')for(const d of store.list('deals').filter(d=>d.proposalId===result.id&&d.stage==='Qualified')){const moved=store.put('deals',{...d,stage:'Proposal sent'},{actor});fireRules(store,'deals',d,moved,actor);}
   if(collection==='clientContacts'&&result.primary)for(const c of store.list('clientContacts').filter(c=>c.id!==result.id&&c.clientId===result.clientId&&c.primary))store.put('clientContacts',{...c,primary:false},{actor});
   if(collection==='invoices'&&result.status==='Void'&&previous.status!=='Void')releaseTime(store,result.id,actor);
   if(collection==='contracts'&&result.status==='Signed'&&previous.status!=='Signed'&&result.depositPercent>0&&!result.depositInvoiceId){
@@ -477,7 +477,8 @@ export function acceptProposal(store,proposalId,actor='You'){
   if(!proposal.lineItems.length)throw new Error('Add at least one line before accepting.');
   const contract=store.put('contracts',{title:proposal.title,clientId:proposal.clientId,projectId:proposal.projectId||'',status:'Draft',value:proposalTotal(proposal),depositPercent:proposal.depositPercent||0,dueDate:'',renewalDate:'',documentUrl:'',notes:`Raised from accepted proposal ${proposal.title}.`,proposalId},{actor});
   const accepted=store.put('proposals',{...proposal,status:'Accepted',acceptedAt:new Date().toISOString(),contractId:contract.id},{actor});
-  for(const d of store.list('deals').filter(d=>d.proposalId===proposalId&&d.stage!=='Won'))store.put('deals',{...d,clientId:d.clientId||proposal.clientId,stage:'Won',lostReason:'',value:proposalTotal(proposal),closedAt:new Date().toISOString()},{actor});
+  for(const d of store.list('deals').filter(d=>d.proposalId===proposalId&&d.stage!=='Won')){const won=store.put('deals',{...d,clientId:d.clientId||proposal.clientId,stage:'Won',lostReason:'',value:proposalTotal(proposal),closedAt:new Date().toISOString()},{actor});fireRules(store,'deals',d,won,actor);}
+  fireRules(store,'proposals',proposal,accepted,actor);
   store.log(`Accepted proposal ${proposal.title}`,actor,proposalId);
   return {proposal:accepted,contract};
 }

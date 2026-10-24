@@ -682,3 +682,13 @@ body .nav .count{display:inline-block;width:auto;min-width:0;height:auto;padding
 .dash-edit .check{display:flex;align-items:center;gap:8px;min-height:28px;font-size:13px}
 .dash-edit-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:12px;border-top:1px solid var(--n-line)}
 .dash-edit-actions input{width:240px;max-width:100%}
+
+/* Start here: plain map of the workspace */
+.start-job-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 20px}
+.start-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:16px}
+.start-grid .panel{margin:0}
+.start-pages{display:flex;flex-direction:column;padding:0 4px 16px}
+.start-page{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 12px;border:0;border-radius:6px;background:transparent;text-align:left;cursor:pointer;transition:background var(--dur-fast) var(--ease-out)}
+.start-page:hover{background:rgba(0,0,0,.04)}
+.start-page strong{font-size:13px;font-weight:500;color:var(--n-ink)}
+.start-page span{font-size:12px;color:var(--n-muted)}

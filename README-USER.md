@@ -63,6 +63,20 @@ This is a local app, not an offline AI model: ChatGPT, Codex, Outlook and social
 
 Automations run while the app process is running and the Mac is awake. Recurring runs missed during sleep catch up once. A job interrupted by a restart is paused for review to avoid repeating side effects. Jobs use Brisbane/AEST dates. No login item or background service is installed automatically.
 
+## Command line
+
+`cli/vareon` works with your business data from a terminal, using the same validation as the app. It reads the installed app's data folder by default (override with `--data <folder>` or `VAREON_DATA_DIR`) and finds a suitable Node itself.
+
+```
+cli/vareon status                          today's tasks, invoices and deadlines
+cli/vareon list clients status=Active      list records, optionally filtered
+cli/vareon add clients name="Ana Reyes"    create a record (or --json '{"name":"..."}')
+cli/vareon set clients <id> status=Active  change fields (an id prefix works)
+cli/vareon search harbour                  search the workspace
+```
+
+To type `vareon` anywhere, link it once: `ln -s "$PWD/cli/vareon" ~/.local/bin/vareon`. Changes are recorded as "CLI". Owner-only steps (accepting proposals, approving reviews, raising invoices) and deleting records stay in the app, so a script or assistant running in your terminal cannot do them.
+
 ## Development and verification
 
 Use Node 24+. `npm install` installs the locked dependencies. `npm start` runs the dashboard; `npm test` runs persistence, validation, scheduling, GPT tool-loop and OAuth/MCP HTTP tests. `npm run typecheck` checks the optional eve integration. `npm run agent:dev` starts the separately configured eve agent. Do not expose that development server publicly.

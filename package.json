@@ -14,7 +14,8 @@
     "agent:dev": "eve dev",
     "agent:build": "eve build",
     "desktop": "electron .",
-    "pack:mac": "node desktop/prepare.mjs && electron-builder --mac dir --arm64"
+    "pack:mac": "node desktop/prepare.mjs && electron-builder --mac dir --arm64",
+    "vareon": "cli/vareon"
   },
   "dependencies": {
     "@azure/msal-node": "^7.1.0",
@@ -85,5 +86,8 @@
         "NSMicrophoneUsageDescription": "VareonHQ uses the microphone when you start a voice message to your business assistant."
       }
     }
+  },
+  "bin": {
+    "vareon": "cli/vareon"
   }
 }
