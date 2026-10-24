@@ -265,7 +265,7 @@ const businessOpsUI=createBusinessOperationsUI({templatesPanel:()=>workspace.tem
 const proposalsUI=createProposalsUI({getData:()=>data,esc,icon,api,currency,fmt,badge,heading,panel,empty,addButton,toolbar,viewRecords,modal,closeModal,toast,refresh,editor});
 const deskUI=createServiceDeskUI({getData:()=>data,esc,icon,api,fmt,badge,heading,panel,empty,addButton,toolbar,viewRecords,toast,perform,refresh});
 const commsUI=createCommsUI({getData:()=>data,esc,icon,api,fmt,badge,heading,panel,empty,addButton,toolbar,modal,closeModal,toast,refresh,getFilter:()=>filter,openClient:id=>operations.setClient(id)});
-const planReview=createPlanReview({getData:()=>data,esc,api,modal,closeModal,refresh,toast});
+const planReview=createPlanReview({getData:()=>data,esc,api,modal,closeModal,refresh,toast,perform,editor:(c,r)=>editor(c,r)});
 const adsSocialUI=createAdsSocialUI({getData:()=>data,esc,api,fmt,badge,heading,panel,empty,addButton,modal,toast,perform,refresh,render});
 const seoUI=createSeoUI({getData:()=>data,esc,api,fmt,badge,heading,panel,empty,addButton,perform,refresh,render});
 const formsUI=createFormsUI({getData:()=>data,esc,icon,api,fmt,badge,heading,panel,empty,addButton,toolbar,viewRecords,modal,closeModal,toast,perform,refresh});

@@ -105,9 +105,10 @@ export function blockTicket(store,runId,taskId,reason,actor){
   log(store,{...run,status:'Needs attention'},actor,`Blocked ${saved.ticketKey}: ${reason}`);return {taskId,status:saved.status};
 }
 
-const runPrompt=(run,resume)=>`You are running VareonHQ delivery run ${run.id} for project ${run.projectId}. Goal from the owner: ${run.goal}
+export const runPrompt=(run,resume,approved=false)=>`You are running VareonHQ delivery run ${run.id} for project ${run.projectId}. Goal from the owner: ${run.goal}
 Work only through the dashboard tools and the agency engineering standard. Start by calling get_delivery_context with projectId ${run.projectId} and runId ${run.id}.
 ${resume?'This is a resumed run. Read the context first and continue from the recorded state; never repeat work, evidence or actions that are already recorded.':''}
+${approved?'The owner has approved the plan and chosen to start building. Any earlier wording in the goal that says to only plan, or not to start tickets, applied to the planning step and no longer applies: continue with the approved plan.':''}
 If the run has no approved plan: propose one with propose_delivery_plan, using only requirement codes from approved PRD revisions, then stop and tell the owner in plain words that the plan is ready: a “Plan ready for your approval” card with a Review plan button now appears in the assistant panel, on Chat and on Reviews. Do not create tickets yourself.
 If the plan is approved: take the next Ready ticket whose dependencies are done, start it with start_delivery_ticket, do the work with your coding tools in your own workspace (use write_preview_file and open_code_preview for anything visual), then record real evidence with save_ticketEvidence: a Change entry pointing at what you produced, and a Check entry for every check you actually ran with its true result. Write an Acceptance entry only for criteria you actually verified. Then call submit_delivery_ticket and stop: the owner reviews before anything moves on.
 Never record a passing review or release, never claim a deployment, and never mark anything done. If scope, access or a decision is missing, call block_delivery_ticket with the reason instead of guessing. Report progress with report_delivery_progress.`;
@@ -116,7 +117,7 @@ export function createDeliveryRuns(store,assistant){
   const kick=(run,resume)=>{
     const engine=run.engine,conversationId=run.conversationId;
     store.put('deliveryRuns',{...run,lastKickAt:new Date().toISOString(),error:''});
-    Promise.resolve().then(()=>assistant.chat(runPrompt(run,resume),engine,{projectId:run.projectId,conversationId,uiContext:{deliveryRunId:run.id}}))
+    Promise.resolve().then(()=>assistant.chat(runPrompt(run,resume,Boolean(run.planId&&store.get('deliveryPlans',run.planId)?.status==='Approved')),engine,{projectId:run.projectId,conversationId,uiContext:{deliveryRunId:run.id}}))
       .then(()=>{const current=store.get('deliveryRuns',run.id);if(current)log(store,current,engine,'The assistant finished this turn.');})
       .catch(error=>{const current=store.get('deliveryRuns',run.id);if(current&&current.status!=='Cancelled')log(store,{...current,status:'Needs attention',error:error.message},engine,'Stopped: '+error.message);});
   };

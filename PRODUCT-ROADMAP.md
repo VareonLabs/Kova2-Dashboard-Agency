@@ -47,6 +47,15 @@ Exit: authorised data is labelled accurately; public changes have previews/appro
 Consent/suppression/contact foundations → sending-domain and email-provider setup → campaign builder/sequences/reporting → two-way SMS → business numbers/calling. Design always-on inbound processing, event retries, abuse controls and usage metering before launch.
 Commercial model: platform subscription + monthly number rental + metered messaging/calls/email + optional services/setup; clear rates, spending caps and reseller rules. Do not purchase numbers or send campaigns as part of planning.
 
+### Making calls and sending texts from the platform (owner intent, 24 Oct 2026)
+Users will eventually call and text from VareonHQ itself. What exists: logged calls and texts per client, recordings with a told-them gate, per-contact email and text consent, automatic STOP opt-out, phone lines that cannot be marked Connected by hand, and `canText()` for the sender to call. What it needs:
+- **Sending texts** is the simpler half: a server-side Twilio call, run only for outgoing messages whose contact passes `canText()`, written back through `saveRecord(..., {provider:true})` so statuses (Queued, Sent, Delivered, Failed) come from Twilio's status callbacks, never from a click.
+- **Calling from the app** needs Twilio's browser calling SDK: a server route that mints short-lived access tokens, a Twilio app that points at us, microphone permission in the desktop app, and an in-app dialer with the client and contact attached so the call logs itself and recordings attach automatically.
+- **Inbound calls and texts** need Twilio to reach us, so a public webhook address. The private-only rule forbids that today; it needs the owner's explicit design sign-off, signature checking on every request, and nothing else exposed.
+- **Credentials** (account SID, auth token or API key) go in the `-v2` Keychain entries through the native helper, never in settings or notes.
+- **Compliance gates before launch:** the recording notice (spoken or played at the start of recorded calls), text consent and STOP/HELP, Australian number and sender registration, quiet hours, and a suppression list that wins over everything.
+- **More than one user** means: which user owns which number, who may call or text which clients, per-user call and text history, and usage metering (calls and texts cost money). That ties into roles and permissions (white-label phase) and the USD subscription work.
+
 ## Phase 6 — Commercial pilots and white-label installations
 
 Reusable branding/configuration; agency setup/migration; supported AI access; roles/permissions; accessibility; diagnostic/support tools; licensing/entitlements; reproducible updates; recovery drills and verified backups. Start with separately owned agency installations and paid pilots. Validate time saved, repeat usage, onboarding and support effort before setting mature pricing.
