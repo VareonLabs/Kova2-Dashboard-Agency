@@ -1,0 +1,110 @@
+/* Light neutral finish. Structural rules stay in their feature stylesheets. */
+:root{color-scheme:light;--surface-border:#dce1e7;--surface:#fff;--surface-raised:#fff;--surface-soft:#edf0f4}
+html,body,body .app,body .main{background:#eef1f5}
+body .sidebar,body .topbar{background:#eef1f5}
+body .sidebar{border-right:1px solid var(--surface-border)}
+body .topbar{border-bottom:1px solid var(--surface-border);box-shadow:none}
+body .main:before{opacity:.025;filter:grayscale(1)}
+body :is(.panel,.metric,.ops-stat,.today-summary,.client-identity,.review-card,.document-card,.integration,.notepad,.memory-files,.asset-card,.followup-card,.analytics-metric,.overview-panel,.client-hero,.kanban-card){background:#fff;border:1px solid #e1e5eb;box-shadow:none}
+body :is(.nav-flyout button,.text-btn,.link,.breadcrumb,.workspace-label,.top-date,.composer-hint,.mail-message-snippet,.mail-date,.mail-sender,.metric-label,.metric-foot){color:var(--n-muted)}
+body :is(.text-btn,.link):hover{color:var(--n-ink)}
+body .nav>button.active,body .nav-group-trigger.group-active,body .nav-flyout button.active{background:#c6f432;color:#243006;box-shadow:none}
+body :is(.overview-hero,.project-hero,.project-metric,.client-context-bar,.mail-shell,.mail-list-pane,.mail-reading-pane,.mail-reading-header,.mail-statusbar,.mail-controls,.composer-popover,.composer-menu,.assistant-chat-picker,.chat-file-row,.chat-file-sharing){background:#f8f9fb;color:var(--n-ink);border-color:var(--surface-border)}
+body :is(.overview-hero,.project-hero){background:linear-gradient(120deg,#fff,#edf1f5);box-shadow:var(--n-raise);border:1px solid var(--surface-border)}
+body :is(.overview-hero h2,.overview-hero p,.project-hero h2,.mail-reading-title h2,.mail-message-subject,.chat-message,.assistant-head h2,.assistant-head strong,.composer-footer button,.composer-footer select){color:var(--n-ink)}
+body :is(.mail-message-row,.mail-reading-actions,.mail-display-tools,.mail-list-label,.mail-reading-attachments){background:transparent;border-color:var(--surface-border);color:var(--n-muted)}
+body .mail-message-row:hover{background:#edf1f5}
+body .mail-message-row.selected,body .mail-message-row.active{background:#eef4df;box-shadow:inset 3px 0 #8aa820}
+body .mail-message-row.unread{background:#fff}
+body .mail-avatar{background:#e9edf2;color:#46515e}
+body .mail-reading-pane{border-left:1px solid #cfd6df}
+body .mail-reading-header{border-bottom:1px solid var(--surface-border)}
+body .assistant{background:#f5f6f8;border-left:1px solid #d5dce5;box-shadow:-4px 0 14px #3440520a}
+body .assistant-head{border-bottom:1px solid var(--surface-border)}
+body .assistant-compose{background:#f5f6f8;border-top:1px solid var(--surface-border)}
+body .assistant-compose .composer{background:#fff;border:1px solid #d5dce5;box-shadow:none}
+body :is(.chat-message,.assistant-content){color:var(--n-ink)}
+body .chat-message{background:#fff;box-shadow:none;border:1px solid #dce1e7}
+body .chat-message.user{background:#edf1e5}
+body :is(.chat-message pre,.chat-message code,.chat-file-text-preview){background:#e9edf2;color:#293340;border-color:var(--surface-border)}
+body .chat-message a{color:#405b08}
+body :is(.composer-footer button,.composer-footer select,.composer-popover button){background:transparent;box-shadow:none;color:var(--n-ink)}
+body .composer-footer .send{background:var(--n-lime)}
+body :is(.badge,.pill,.status){color:#4a5562}
+body select{padding-right:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2359636f' stroke-width='1.8'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");background-position:right 12px center;background-repeat:no-repeat}
+body .brand-logo{content:url('/vareonhq-logo-light.svg')}
+body .modal{border:1px solid #d5dce5}
+body :is(.field input,.field select,.field textarea){border:1px solid #dce1e7}
+body .assistant-resize-handle:after{background:#bfc8d3}
+body .nav-flyout button:hover{color:var(--n-ink)}
+body :is(.table th,.table td){border-color:var(--surface-border)}
+@media(max-width:700px){body .mail-reading-pane{border-left:0}body .assistant{border-left:0}body .topbar{background:#eef1f5}body .phone-navigation select{color:var(--n-ink)}}
+@media(prefers-contrast:more){:root{--n-muted:#36414e;--n-faint:#46515e;--surface-border:#8e99a6}body :is(.panel,.metric,.ops-stat,.kanban-card,.btn){border:1px solid #8e99a6}}
+body .client-workspace .ops-stat,body .client-workspace .panel{background:#fff;box-shadow:var(--n-raise);border:1px solid #e1e5eb}
+body .client-workspace .client-tabs{background:var(--n-deep);box-shadow:var(--n-inset);border:1px solid var(--surface-border)}
+body .client-workspace .client-tabs button.active{background:#fff;color:var(--n-accent);box-shadow:var(--n-raise-s);border:0}
+body .client-hero-actions .btn{box-shadow:var(--n-raise-s)}
+body .badge{color:#46515e!important;background:#e9edf2!important}
+body :is(.panel,.overview-panel,.client-workspace,.project-workspace,.assistant,.modal) :is(h1,h2,h3,h4){color:var(--n-ink)}
+body :is(.ops-stat,.metric,.panel,.overview-panel,.project-workspace,.client-workspace) small{color:var(--n-muted)}
+body .ops-stat strong,body .metric-value{color:var(--n-ink)}
+body .app.assistant-open .assistant,body .assistant-content,body .assistant-head{background:#f5f6f8;color:var(--n-ink)}
+body .assistant-context{background:#edf0f4;border:1px solid var(--surface-border)}
+body .project-context{background-color:#edf0f4!important;color:var(--n-ink)!important;border:1px solid #d2d9e2!important;box-shadow:var(--n-inset)}
+body .assistant-chat-picker select,body .assistant-compose .composer .model-picker-row select{color:var(--n-ink)}
+body .assistant :is(.context-note,.assistant-date,.assistant-context-hint,.assistant-intro p){color:var(--n-muted)}
+body .assistant .icon-btn,body .assistant .composer-footer button{color:var(--n-ink);background:#f5f6f8}
+body .assistant-compose{box-shadow:none}
+body .account strong,body .usage-window strong{color:var(--n-ink)}
+body .usage-widget small,body .usage-window,body .usage-widget>small{color:var(--n-muted)}
+body .project-context select,body .assistant-compose .engine-select select{background-color:#edf0f4!important;color:var(--n-ink)!important;border:1px solid #d2d9e2!important}
+body .composer :is(.composer-add,.composer-shortcut,.voice-button){color:var(--n-muted)!important}
+body .count{color:#46515e;background:#e9edf2}
+body .overview-metrics .metric .metric-value,body .cashflow-summary strong,body .cashflow-total strong,body .task-breakdown strong,body .overview-panel strong{color:var(--n-ink)}
+body .task-ring>div{background:#f5f6f8;color:var(--n-ink)}
+body .metric-value{font-size:28px;overflow-wrap:normal;word-break:normal}
+body .metric-symbol{background:#edf1e5;color:#526626}
+body .kanban-card h3{color:var(--n-ink)}
+body .kanban-meta,body .column-add{color:var(--n-muted)}
+body .column-count{background:#dde3e9;color:#46515e}
+body .column-heading,body .kanban-card-footer,body .column-add{border-color:#cfd6df}
+body select.stage-select{background-color:#edf0f4!important;color:var(--n-ink)!important;border-color:#cfd6df!important}
+body select option,body select optgroup{background:#f5f6f8;color:var(--n-ink)}
+/* Legacy feature controls carried dark !important colours; theme owns colours. */
+body select{background-color:#edf0f4!important;color:var(--n-ink)!important;border-color:#d2d9e2!important}
+body .assistant-compose .composer .model-picker-row select{background-color:transparent!important}
+body .mail-search{background:#edf0f4;border:1px solid #d2d9e2;color:var(--n-muted)}
+body .mail-search input{box-shadow:none;background:transparent}
+body .mail-control select,body .mail-control label,body .mail-reading-empty h2,body .mail-no-results strong,body .mail-reading-empty strong{color:var(--n-ink)}
+body .mail-reading-empty,body .mail-no-results,body .mail-statusbar button{color:var(--n-muted)}
+
+/* Flat finish: no paired shadows anywhere. Surfaces are white on the grey canvas with a thin border;
+   hover darkens the border, selection uses a soft fill. */
+html,body,body .app,body .main{background:var(--n-canvas)}
+body .sidebar,body .topbar{background:var(--n-canvas);box-shadow:none}
+body .topbar{border-bottom:1px solid var(--n-line)}
+body .sidebar{border-right:1px solid var(--n-line)}
+body .btn:hover,body .icon-btn:hover{box-shadow:0 0 0 1px var(--n-line-strong);background:#f7f8fa}
+body .btn.primary,body .btn.soft.primary{box-shadow:none}
+body .btn.primary:hover{box-shadow:none;background:#d0f74f}
+body :is(.ops-row,.list-row):hover,body .kanban-card:hover,body .suggestion:hover{box-shadow:0 0 0 1px var(--n-line-strong)}
+body input:not([type=checkbox]):not([type=radio]):not([type=file]),body textarea,body .search input{background:#fff!important;box-shadow:inset 0 0 0 1px var(--n-line-strong)}
+body input:focus,body textarea:focus,body select:focus{box-shadow:inset 0 0 0 1px #8fb21a,0 0 0 3px #c6f43240}
+body select{background-color:#fff!important;box-shadow:inset 0 0 0 1px var(--n-line-strong)}
+body .project-tabs,body .client-tabs,body .tabs,body .ops-tabs,body .view-toggle{box-shadow:none;background:#e9ecf0}
+body :is(.project-tabs,.client-tabs,.tabs,.ops-tabs,.view-toggle)>button.active{background:#fff;color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line-strong)}
+body .nav>button.active,body .nav-group-trigger.group-active{background:#fff;color:var(--n-ink);box-shadow:0 0 0 1px var(--n-line-strong)}
+body .nav>button.active .icon,body .nav-group-trigger.group-active .icon{color:var(--n-accent)}
+body .client-hero,body .project-hero,body .overview-hero{background:#fff;box-shadow:0 0 0 1px var(--n-line)}
+body .modal-overlay{background:#1a223040}
+body .wf-steps li.wf-current{color:var(--n-lime-ink);background:var(--n-lime);box-shadow:none}
+body .usage-window i{background:#e9ecf0;box-shadow:none}
+body .ticket-check span,body .bulk-pick span{background:#fff;box-shadow:inset 0 0 0 1px var(--n-line-strong)}
+body .ticket-check input:checked+span,body .bulk-pick input:checked+span{background:var(--n-lime);box-shadow:none}
+body .breadcrumb span{color:var(--n-muted)}
+body .calendar-stage:not(#_){background:#fff;box-shadow:0 0 0 1px var(--n-line)}
+body .kanban-column:not(#_){background:#eceff3;box-shadow:none;border:0}
+body .kanban-card:not(#_){background:#fff;box-shadow:0 0 0 1px var(--n-line)}
+body .kanban-card:hover:not(#_){box-shadow:0 0 0 1px var(--n-line-strong)}
+body .column-empty:not(#_){background:transparent;box-shadow:none;border:1px dashed var(--n-line-strong)}
+body .btn.danger:not(#_):not(#_),body .text-btn.danger:not(#_):not(#_){color:#b42318}

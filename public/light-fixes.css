@@ -1,0 +1,505 @@
+/* Generated once on 24 Oct 2026 when the app moved to the flat light theme: every rule in the older
+   stylesheets that set dark-theme text or surface colours gets a light equivalent here. Lime as text
+   becomes the dark accent so it stays readable on white. Loaded after light.css. */
+.sidebar:not(#_){color:var(--n-ink)}
+.brand span:not(#_){color:var(--n-muted)}
+.workspace-label:not(#_){color:var(--n-muted)}
+.nav button:not(#_){color:var(--n-muted)}
+.nav button:hover:not(#_){background:#fff}
+.nav button.active:not(#_){color:var(--n-ink);background:#fff}
+.nav button.active svg:not(#_){color:var(--n-ink)}
+.nav .count:not(#_){background:#fff}
+.local-box:not(#_){color:var(--n-muted)}
+.avatar:not(#_){background:#fff;color:var(--n-ink)}
+.account small:not(#_){color:var(--n-muted)}
+.breadcrumb strong:not(#_){color:var(--n-ink)}
+.local-pill:not(#_){color:var(--n-muted);background:#fff}
+.icon-btn:not(#_){color:var(--n-muted)}
+.btn:not(#_){background:#fff}
+.btn.soft:not(#_){background:#fff;color:var(--n-ink)}
+.metric:not(#_){background:#fff}
+.metric-label:not(#_){color:var(--n-muted)}
+.metric-foot:not(#_){color:var(--n-muted)}
+.metric:nth-child(2):not(#_){background:#fff}
+.text-btn:not(#_){color:var(--n-ink)}
+.welcome:not(#_){background:#fff}
+.welcome p:not(#_){color:var(--n-muted)}
+.welcome-mark:not(#_){color:var(--n-ink)}
+.empty-symbol:not(#_){color:var(--n-muted)}
+.check:not(#_){background:#fff}
+.check.done:not(#_){background:#fff}
+.badge:not(#_){background:#fff;color:var(--n-muted)}
+.badge.amber:not(#_){background:#fff;color:var(--n-muted)}
+.badge.red:not(#_){background:#fff;color:var(--n-muted)}
+.badge.gray:not(#_){background:#fff;color:var(--n-muted)}
+.badge.blue:not(#_){background:#fff;color:var(--n-muted)}
+.progress-track:not(#_){background:#fff}
+.day strong:not(#_){color:var(--n-ink)}
+.day.today:not(#_){background:#fff}
+.assistant:not(#_){background:#fff}
+.ai-symbol:not(#_){background:#fff;color:var(--n-ink)}
+.assistant-brand small:not(#_){color:var(--n-muted)}
+.assistant-date:not(#_){color:var(--n-muted)}
+.assistant-intro p:not(#_){color:var(--n-muted)}
+.suggestion:not(#_){background:#fff;color:var(--n-muted)}
+.suggestion:hover:not(#_){background:#fff}
+.suggestion span:not(#_){color:var(--n-muted)}
+.assistant-status:not(#_){color:var(--n-muted)}
+.engine-select:not(#_){color:var(--n-muted)}
+.engine-select select:not(#_){background:#fff;color:var(--n-ink)}
+.composer:not(#_){background:#fff}
+.composer-hint:not(#_){color:var(--n-muted)}
+.mic:not(#_){color:var(--n-muted)}
+.mic.recording:not(#_){color:var(--n-muted)}
+.chat-message:not(#_){background:#fff}
+.chat-message.user:not(#_){background:#fff}
+.chat-message small:not(#_){color:var(--n-muted)}
+.chat-message.error:not(#_){background:#fff}
+.thinking:not(#_){color:var(--n-muted)}
+.search svg:not(#_){color:var(--n-muted)}
+.search input:not(#_){background:#fff}
+.tabs:not(#_){background:#fff}
+.tabs button:not(#_){color:var(--n-muted)}
+.tabs button.active:not(#_){color:var(--n-ink)}
+.table th:not(#_){color:var(--n-muted);background:#fff}
+.table tbody tr:hover:not(#_){background:#fff}
+.table .title-cell:not(#_){color:var(--n-ink)}
+.table small:not(#_){color:var(--n-muted)}
+.card-body p:not(#_){color:var(--n-muted)}
+.card-footer:not(#_){color:var(--n-muted)}
+.post-preview:not(#_){background:#fff;color:var(--n-ink)}
+.slide-preview:not(#_){background:#fff}
+.slide:not(#_){background:#fff;color:var(--n-ink)}
+.slide small:not(#_){color:var(--n-ink)}
+.integration-logo:not(#_){background:#fff;color:var(--n-ink)}
+.integration p:not(#_){color:var(--n-muted)}
+.notice:not(#_){background:#fff;color:var(--n-muted)}
+.notice a:not(#_){color:var(--n-ink)}
+.mail-item.active:not(#_){background:#fff}
+.mail-item p:not(#_){color:var(--n-muted)}
+.mail-item small:not(#_){color:var(--n-muted)}
+.mail-body:not(#_){color:var(--n-muted)}
+.mail-meta:not(#_){color:var(--n-muted)}
+.run-output:not(#_){background:#fff}
+.field label:not(#_){color:var(--n-muted)}
+.field input:not(#_),.field select:not(#_),.field textarea:not(#_){color:var(--n-ink)}
+.field small:not(#_){color:var(--n-muted)}
+.form-error:not(#_){background:#fff;color:var(--n-muted)}
+#toast:not(#_){background:#fff;color:var(--n-ink)}
+.tagline:not(#_){color:var(--n-muted)}
+.link:not(#_){color:var(--n-ink)}
+.timeline-bar:not(#_){background:#fff;color:var(--n-ink)}
+.connection-alert:not(#_){color:var(--n-muted)}
+.step-index:not(#_){background:#fff;color:var(--n-ink)}
+.page-footer:not(#_){color:var(--n-muted)}
+.status-line:not(#_){color:var(--n-muted)}
+.microphone-note:not(#_){color:var(--n-muted)}
+.error-panel:not(#_){background:#fff}
+body:not(#_){background:#fff}
+.sidebar .local-box:not(#_){background:#fff}
+.assistant-head:not(#_),.topbar:not(#_){background:#fff}
+.metric-value:not(#_){color:var(--n-ink)}
+.topbar:not(#_),.assistant-head:not(#_){background:#fff}
+.btn.soft:not(#_){background:#fff;color:var(--n-accent)}
+.nav button.active:not(#_){background:#fff;color:var(--n-accent)}
+.nav button.active svg:not(#_),.eyebrow:not(#_),.text-btn:not(#_),.link:not(#_){color:var(--n-accent)}
+.badge:not(#_){background:#fff;color:var(--n-accent)}
+.local-pill:not(#_){background:#fff;color:var(--n-ink)}
+.avatar:not(#_),.ai-symbol:not(#_),.integration-logo:not(#_){background:#fff;color:var(--n-accent)}
+.suggestion:not(#_){background:#fff;color:var(--n-ink)}
+.assistant:not(#_),.panel:not(#_),.metric:not(#_),.integration:not(#_){background:#fff}
+.notice a:not(#_){color:var(--n-accent)}
+.timeline-bar:not(#_){background:#fff;color:var(--n-accent)}
+.slide small:not(#_){color:var(--n-accent)}
+.local-box:not(#_){background:#fff!important}
+.text-btn:hover:not(#_),.link:hover:not(#_){color:var(--n-accent)}
+.mic.recording:not(#_){color:var(--n-accent)}
+.kanban-column:not(#_){background:#fff}
+.kanban-column.drag-over:not(#_){background:#fff}
+.column-count:not(#_){color:var(--n-muted);background:#fff}
+.kanban-card:not(#_){background:#fff}
+.kanban-card .card-snippet:not(#_){color:var(--n-muted)}
+.kanban-meta:not(#_){color:var(--n-muted)}
+.stage-select:not(#_){background:#fff;color:var(--n-muted)}
+.column-add:not(#_){color:var(--n-muted)}
+.column-empty:not(#_){color:var(--n-muted)}
+.board-info:not(#_){color:var(--n-muted)}
+.platform-tag:not(#_){color:var(--n-ink)}
+.mini-slide:not(#_){background:#fff;color:var(--n-accent)}
+.kanban-card .link:not(#_){color:var(--n-ink)}
+.view-toggle:not(#_){background:#fff}
+.view-toggle button:not(#_){color:var(--n-muted)}
+.view-toggle button.active:not(#_){background:#fff;color:var(--n-accent)}
+.project-context:not(#_){background:#fff;color:var(--n-muted)}
+.project-context label:not(#_){color:var(--n-muted)}
+.project-context select:not(#_){background:#fff;color:var(--n-accent)}
+.assistant-work:not(#_){background:#fff;color:var(--n-accent)}
+.assistant-work .work-label:not(#_){color:var(--n-accent)}
+.assistant-work small:not(#_){color:var(--n-muted)}
+.live-banner:not(#_){background:#fff;color:var(--n-accent)}
+.note-item:not(#_){background:#fff;color:var(--n-ink)}
+.note-item.active:not(#_){background:#fff}
+.note-item small:not(#_){color:var(--n-muted)}
+.notepad:not(#_){background:#fff}
+.notepad input:not(#_){color:var(--n-ink)}
+.notepad textarea:not(#_){color:var(--n-ink)}
+.notepad-foot:not(#_){color:var(--n-muted)}
+.memory-files button:not(#_){background:#fff;color:var(--n-muted)}
+.memory-files button.active:not(#_){color:var(--n-accent);background:#fff}
+.memory-editor:not(#_){background:#fff;color:var(--n-ink)}
+.memory-description:not(#_){color:var(--n-muted)}
+.memory-files .file-title:not(#_){color:var(--n-muted)}
+.assistant-context-hint:not(#_){color:var(--n-muted)}
+.assistant-activity:not(#_){background:#fff;color:var(--n-muted)}
+.live-preview-hint:not(#_){color:var(--n-muted)}
+.board-scroll-tip:not(#_){color:var(--n-muted)}
+.rich-toolbar:not(#_){background:#fff}
+.rich-toolbar button:not(#_),.rich-toolbar select:not(#_),.rich-toolbar label:not(#_){background:#fff;color:var(--n-ink)}
+.signature-preview:not(#_){background:#fff}
+.signature-label:not(#_){color:var(--n-muted)}
+.check-label:not(#_){color:var(--n-muted)}
+.attachment-chip:not(#_){background:#fff;color:var(--n-accent)}
+.attachment-chip button:not(#_){color:var(--n-accent)}
+.usage-widget:not(#_){background:#fff;color:var(--n-muted)}
+.usage-widget>small:not(#_){color:var(--n-muted)}
+.usage-window strong:not(#_){color:var(--n-accent)}
+.usage-window i:not(#_){background:#fff}
+.social-post:not(#_){background:#fff}
+.social-profile strong:not(#_){color:var(--n-ink)}
+.social-profile small:not(#_){color:var(--n-muted)}
+.social-copy:not(#_){color:var(--n-ink)}
+.social-carousel:not(#_){background:#fff;color:var(--n-accent)}
+.social-carousel>small:not(#_){color:var(--n-accent)}
+.carousel-controls:not(#_){color:var(--n-muted)}
+.social-post-actions:not(#_){color:var(--n-muted)}
+.contact-suggestions:not(#_){background:#fff}
+.contact-suggestions button:hover:not(#_),.contact-suggestions button:focus:not(#_){background:#fff}
+.field-inline select:not(#_),.preview-controls select:not(#_){background:#fff}
+.asset-card:not(#_){background:#fff}
+.asset-visual:not(#_){background:#fff}
+.media-choice:not(#_){background:#fff}
+.social-media:not(#_){background:#fff}
+.build-preview-stage:not(#_){background:#fff}
+.folder-button.active:not(#_){background:#fff}
+.topbar:not(#_){background:#fff}
+html:not(#_),body:not(#_){background:#fff}
+.app:not(#_){background:#fff}
+.sidebar:not(#_){background:#fff}
+.nav button:hover:not(#_){color:var(--n-ink)}
+.sidebar .local-box:not(#_){color:var(--n-muted)}
+.account .avatar:not(#_){background:#fff;color:var(--n-accent)}
+.breadcrumb strong:not(#_){color:var(--n-muted)}
+.top-date:not(#_){color:var(--n-muted)}
+.local-pill:not(#_){color:var(--n-muted)}
+.usage-window strong:not(#_){color:var(--n-ink)}
+.icon-btn:hover:not(#_){color:var(--n-ink)}
+.eyebrow:not(#_){color:var(--n-muted)}
+.page-heading .sub:not(#_){color:var(--n-muted)}
+.btn:not(#_){color:var(--n-ink)}
+.btn.soft:not(#_){color:var(--n-ink)}
+.text-btn:not(#_){color:var(--n-muted)}
+.link:hover:not(#_),.text-btn:hover:not(#_){color:var(--n-accent)}
+.sub:not(#_){color:var(--n-muted)}
+.panel:not(#_),.metric:not(#_),.integration:not(#_),.notepad:not(#_),.memory-files:not(#_){background:#fff}
+.panel-head small:not(#_){color:var(--n-muted)}
+.metric-label>.icon:not(#_){color:var(--n-muted)}
+.metric-symbol:not(#_){color:var(--n-muted)}
+.metric:first-child .metric-value:not(#_){color:var(--n-ink)}
+.metric:nth-child(2) .metric-symbol:not(#_){color:var(--n-muted)}
+.overview-heading h1 span:not(#_){color:var(--n-accent)}
+.overview-hero:not(#_){background:#fff}
+.overview-hero .eyebrow:not(#_){color:var(--n-muted)}
+.overview-hero h2:not(#_){color:var(--n-ink)}
+.overview-hero p:not(#_){color:var(--n-muted)}
+.hero-orbit>div:not(#_){background:#fff}
+.orbit-label:not(#_){color:var(--n-muted)}
+.cashflow-summary strong:not(#_){color:var(--n-ink)}
+.cashflow-summary>span:not(#_){color:var(--n-muted)}
+.chart-legend:not(#_){color:var(--n-muted)}
+.task-ring>div:not(#_){background:#fff}
+.task-ring strong small:not(#_){color:var(--n-muted)}
+.task-ring span:not(#_){color:var(--n-muted)}
+.task-breakdown:not(#_){color:var(--n-muted)}
+.task-breakdown strong:not(#_){color:var(--n-ink)}
+.task-breakdown>span:nth-child(2) i:not(#_){background:#fff}
+.overview-empty strong:not(#_){color:var(--n-ink)}
+.overview-empty p:not(#_){color:var(--n-muted)}
+.overview-note:not(#_){background:#fff}
+.overview-note .panel-head>.icon:not(#_){color:var(--n-muted);background:#fff}
+.overview-note p:not(#_){color:var(--n-muted)}
+.agreement-summary button:not(#_){color:var(--n-ink)}
+.agreement-summary span:not(#_){color:var(--n-muted)}
+.delivery-row small:not(#_){color:var(--n-muted)}
+.delivery-progress>span:not(#_){color:var(--n-muted)}
+.timeline-entry:not(#_){color:var(--n-muted)}
+.row-title:not(#_){color:var(--n-ink)}
+.row-sub:not(#_){color:var(--n-muted)}
+.badge:not(#_){color:var(--n-muted)}
+.badge.gray:not(#_){color:var(--n-muted)}
+.badge.blue:not(#_){color:var(--n-muted)}
+.badge.amber:not(#_){color:var(--n-muted)}
+.badge.red:not(#_){color:var(--n-muted)}
+.notice:not(#_){color:var(--n-muted)}
+.empty strong:not(#_){color:var(--n-muted)}
+.empty p:not(#_){color:var(--n-muted)}
+.search input:not(#_){color:var(--n-ink)}
+.search .icon:not(#_){color:var(--n-muted)}
+.tabs button.active:not(#_){background:#fff;color:var(--n-ink)}
+.kanban-card h3:not(#_){color:var(--n-ink)}
+.kanban-count:not(#_){color:var(--n-muted)}
+.table th:not(#_){background:#fff;color:var(--n-muted)}
+.table td:not(#_){color:var(--n-muted)}
+.table td small:not(#_){color:var(--n-muted)}
+.integration-logo:not(#_){color:var(--n-muted)}
+.mail-item:not(#_){color:var(--n-ink)}
+.mail-item small:not(#_),.mail-item p:not(#_){color:var(--n-muted)}
+.mail-folders .folder-button.active:not(#_){color:var(--n-ink)}
+.notepad input:not(#_),.notepad textarea:not(#_){color:var(--n-ink)}
+.note-item:not(#_){background:#fff;color:var(--n-muted)}
+.assistant-head:not(#_){background:#fff}
+.assistant-brand strong:not(#_){color:var(--n-ink)}
+.ai-symbol:not(#_){color:var(--n-accent)}
+.assistant-context label:not(#_),.context-label:not(#_){color:var(--n-muted)}
+.assistant-intro .eyebrow:not(#_){color:var(--n-muted)}
+.assistant-intro h2:not(#_){color:var(--n-ink)}
+.suggestion:not(#_){color:var(--n-muted)}
+.assistant-compose:not(#_){background:#fff}
+.engine-select .text-btn:not(#_){color:var(--n-muted)!important}
+.assistant-model-control>label:not(#_){color:var(--n-muted)}
+.model-picker-row select:not(#_){background:#fff;color:var(--n-ink)}
+.assistant-model-control .model-error:not(#_){color:var(--n-muted)}
+.composer textarea:not(#_){color:var(--n-ink)}
+.chat-message:not(#_){color:var(--n-muted)}
+.chat-message.user:not(#_){color:var(--n-ink)}
+.chat-message.error:not(#_){color:var(--n-muted)}
+.chat-message.error small:not(#_){color:var(--n-muted)}
+.assistant-progress:not(#_){background:#fff}
+.modal:not(#_){background:#fff}
+.modal-head h2:not(#_){color:var(--n-ink)}
+.field input:not(#_),.field select:not(#_),.field textarea:not(#_){background:#fff;color:var(--n-ink)}
+.form-error:not(#_){color:var(--n-muted)}
+.email-editor:not(#_){background:#fff;color:var(--n-ink)}
+.run-output:not(#_){background:#fff;color:var(--n-muted)}
+.contact-suggestions button:not(#_){color:var(--n-ink)}
+.overview-metrics .metric:nth-child(2):not(#_){background:#fff}
+select option:not(#_){background:#fff;color:var(--n-ink)}
+:not(#_)::-webkit-scrollbar-thumb{background:#fff}
+.nav button.group-active:not(#_){color:var(--n-ink)}
+.nav-flyout:not(#_){background:#fff}
+.nav-flyout-label:not(#_){color:var(--n-muted)}
+.nav-flyout button:not(#_){color:var(--n-muted)}
+.nav-flyout button:hover:not(#_),.nav-flyout button:focus-visible:not(#_){color:var(--n-ink)}
+.nav-flyout button.active:not(#_){color:var(--n-accent)}
+.nav-flyout button .icon:not(#_){color:var(--n-muted)}
+.breadcrumb:not(#_){color:var(--n-muted)}
+.page-heading .eyebrow:not(#_){color:var(--n-muted)}
+.text-btn:hover:not(#_){color:var(--n-accent)}
+.panel-head h2:not(#_){color:var(--n-ink)}
+.chart-months:not(#_){color:var(--n-muted)}
+.overview-empty strong:not(#_){color:var(--n-muted)}
+.timeline-entry small:not(#_){color:var(--n-muted)}
+.table th:not(#_){color:var(--n-muted)}
+.kanban-meta:not(#_),.card-snippet:not(#_){color:var(--n-muted)}
+.field input:not(#_),.field select:not(#_),.field textarea:not(#_){color:var(--n-ink);background:#fff}
+.field-inline:not(#_){color:var(--n-muted)}
+.field-inline select:not(#_){background:#fff}
+.contact-suggestions span:not(#_){color:var(--n-muted)}
+.assistant:not(#_),.app.assistant-open .assistant:not(#_){background:#fff}
+.assistant-content:not(#_){background:#fff}
+.project-context:not(#_){color:var(--n-muted)!important;background:#fff!important}
+.context-note:not(#_){color:var(--n-muted)}
+.chat-message:not(#_){background:#fff;color:var(--n-ink)}
+.engine-select select:not(#_){background:#fff}
+.assistant-model-control>small:not(#_){color:var(--n-muted)}
+.composer textarea:not(#_)::placeholder{color:var(--n-muted)}
+.inbox-heading .sub:not(#_){color:var(--n-muted)}
+.mail-shell:not(#_){background:#fff}
+.mail-search:not(#_){background:#fff}
+.mail-search>.icon:not(#_){color:var(--n-muted)}
+.mail-search input:not(#_){color:var(--n-ink)}
+.mail-search input:not(#_)::placeholder{color:var(--n-muted)}
+.mail-control>span:not(#_){color:var(--n-muted)}
+.mail-control select:not(#_),.mail-control input:not(#_){background:#fff;color:var(--n-muted)}
+.mail-list-label:not(#_){color:var(--n-muted)}
+.mail-message-row:not(#_){color:var(--n-muted)}
+.mail-avatar:not(#_){color:var(--n-muted)}
+.mail-message-top time:not(#_){color:var(--n-muted)}
+.mail-message-subject:not(#_){color:var(--n-muted)}
+.mail-message-snippet:not(#_){color:var(--n-muted)}
+.mail-message-row.unread .mail-message-top strong:not(#_),.mail-message-row.unread .mail-message-subject:not(#_){color:var(--n-ink)}
+.mail-reading-title h2:not(#_){color:var(--n-ink)}
+.mail-state:not(#_){color:var(--n-muted)}
+.mail-sender strong:not(#_){color:var(--n-ink)}
+.mail-sender>div>span:not(#_){color:var(--n-muted)}
+.mail-sender time:not(#_){color:var(--n-muted)}
+.mail-move-label:not(#_){color:var(--n-muted)}
+.mail-move-label select:not(#_){background:#fff;color:var(--n-muted)}
+.mail-message-body:not(#_){color:var(--n-muted)}
+.mail-statusbar:not(#_){background:#fff;color:var(--n-muted)}
+.mail-statusbar .text-btn:not(#_){color:var(--n-muted)}
+.mail-no-results:not(#_),.mail-reading-empty:not(#_){color:var(--n-muted)}
+.mail-no-results strong:not(#_),.mail-reading-empty h2:not(#_){color:var(--n-muted)}
+.mail-no-results p:not(#_),.mail-reading-empty p:not(#_){color:var(--n-muted)}
+.rich-toolbar .format-button:not(#_),.rich-toolbar .format-colour:not(#_){color:var(--n-muted)}
+.rich-toolbar .format-button:hover:not(#_),.rich-toolbar .format-button[aria-pressed=true]:not(#_),.rich-toolbar .format-colour:hover:not(#_){color:var(--n-accent)}
+.rich-toolbar select:not(#_){background:#fff;color:var(--n-ink)}
+.rich-editor:empty:before:not(#_){color:var(--n-muted)}
+.signature-preview summary:not(#_){color:var(--n-muted)}
+.signature-preview summary:before:not(#_){color:var(--n-muted)}
+.signature-preview summary span:not(#_){color:var(--n-muted)}
+.compose-modal .form-actions:not(#_){background:#fff}
+.rich-link-form:not(#_){background:#fff}
+.attachment-chip:not(#_){color:var(--n-muted)}
+.attachment-chip button:not(#_){color:var(--n-muted)}
+.earlier-chat-error:not(#_){color:var(--n-muted)}
+.memory-editor:not(#_){background:#fff;color:var(--n-muted)}
+.project-context select:not(#_){background:#fff;color:var(--n-ink)}
+.assistant-compose .engine-select select:not(#_){background:#fff}
+.assistant-compose .model-picker-row select:not(#_){background:#fff}
+.assistant-compose .composer:not(#_){background:#fff}
+.assistant-compose .composer-footer .mic:not(#_),.assistant-compose .speech-toggle:not(#_){color:var(--n-muted)}
+.assistant-compose .composer-footer .mic:hover:not(#_),.assistant-compose .speech-toggle:hover:not(#_){color:var(--n-ink)}
+.assistant-compose .speech-toggle[aria-pressed=true]:not(#_){color:var(--n-accent)}
+.composer-shortcut:not(#_){color:var(--n-muted)}
+.mail-delete:hover:not(:disabled):not(#_){color:var(--n-muted)}
+.assistant-compose .composer textarea:not(#_){color:var(--n-ink)}
+.assistant-compose .composer textarea:not(#_)::placeholder{color:var(--n-muted)}
+.composer-menu>summary:not(#_){color:var(--n-muted)}
+.composer-add>summary:not(#_){color:var(--n-ink)}
+.composer-menu>summary:hover:not(#_),.composer-menu[open]>summary:not(#_){color:var(--n-ink)}
+.composer-popover:not(#_){background:#fff}
+.composer-popover>button:not(#_),.assistant-compose .composer-popover .speech-toggle:not(#_){color:var(--n-ink)}
+.composer-popover>button:hover:not(#_){color:var(--n-ink)}
+.assistant-compose .composer-popover .engine-select:not(#_){color:var(--n-ink)}
+.assistant-compose .composer-popover .engine-select select:not(#_){background:#fff}
+.assistant-compose .composer .model-picker-row select:not(#_){color:var(--n-ink)}
+.assistant-compose .composer .model-error:not(#_){background:#fff}
+.assistant-compose .composer-footer .mic:not(#_){color:var(--n-ink)}
+.mail-auto-sync:not(#_){color:var(--n-muted)}
+.mail-auto-sync.has-error:not(#_){color:var(--n-muted)}
+.assistant-chat-picker:not(#_){background:#fff}
+.assistant-chat-picker>.icon:not(#_){color:var(--n-muted)}
+.assistant-chat-picker select:not(#_){color:var(--n-muted)}
+.chat-citation:not(#_){color:var(--n-accent)}
+.analytics-section-heading small:not(#_){color:var(--n-muted)}
+.analytics-metric>span:not(#_){color:var(--n-muted)}
+.analytics-metric>small:not(#_){color:var(--n-muted)}
+.analytics-table th:not(#_){background:#fff;color:var(--n-muted)}
+.analytics-trend>div:not(#_){color:var(--n-muted)}
+.analytics-chart-empty:not(#_){color:var(--n-muted)}
+.analytics-connection-note p:not(#_){color:var(--n-muted)}
+.analytics-score>span:not(#_){color:var(--n-muted)}
+.analytics-score-value small:not(#_){color:var(--n-muted)}
+.analytics-score>small:not(#_){color:var(--n-muted)}
+.analytics-check summary small:not(#_){color:var(--n-muted)}
+.analytics-check-status.passed:not(#_){color:var(--n-accent)}
+.analytics-check-status.attention:not(#_){color:var(--n-muted)}
+.analytics-check-detail:not(#_){color:var(--n-muted)}
+.analytics-setup-steps:not(#_){color:var(--n-muted)}
+.analytics-setup-steps a:not(#_){color:var(--n-accent)}
+.chat-file-heading:not(#_){color:var(--n-muted)}
+.chat-file-row>button:first-child:not(#_){color:var(--n-ink)}
+.chat-file-row small:not(#_),.chat-file-folder summary small:not(#_){color:var(--n-muted)}
+.chat-file-row .icon:not(#_){color:var(--n-muted)}
+.chat-file-remove:not(#_){color:var(--n-muted)}
+.chat-file-remove:hover:not(#_){color:var(--n-ink)}
+.chat-file-folder summary:not(#_){color:var(--n-ink)}
+.chat-file-folder summary>.icon:not(#_){color:var(--n-accent)}
+.chat-file-sharing:not(#_){color:var(--n-muted)}
+.chat-file-progress:not(#_){color:var(--n-accent)}
+.chat-file-issues:not(#_){color:var(--n-muted)}
+.chat-file-text-preview:not(#_){background:#fff;color:var(--n-ink)}
+.chat-file-preview-image:not(#_){background:#fff}
+.assistant-compose.chat-file-drop-active:before:not(#_){color:var(--n-accent)}
+.ops-count:not(#_){color:var(--n-accent)}
+.ops-stat small:not(#_){color:var(--n-muted)}
+.ops-stat span:not(#_){color:var(--n-muted)}
+.ops-empty:not(#_){color:var(--n-muted)}
+.ops-tabs button:not(#_){color:var(--n-muted)}
+.ops-tabs button.active:not(#_){color:var(--n-accent)}
+.ops-tabs button:hover:not(#_){color:var(--n-ink)}
+.ops-client-avatar:not(#_){color:var(--n-accent)}
+.client-summary-note:not(#_){color:var(--n-muted)}
+.review-summary:not(#_){color:var(--n-muted)}
+.review-error:not(#_){color:var(--n-muted)}
+.review-code:not(#_){background:#fff}
+.review-diff strong:not(#_){color:var(--n-muted)}
+.review-diff del:not(#_){color:var(--n-muted)}
+.review-diff span:not(#_){color:var(--n-ink)}
+.review-copy:not(#_),.review-slide p:not(#_){color:var(--n-ink)}
+.review-slide small:not(#_){color:var(--n-accent)}
+.review-media:not(#_){color:var(--n-muted)}
+.chat-prose strong:not(#_){color:var(--n-ink)}
+.chat-prose li:not(#_)::marker{color:var(--n-muted)}
+.chat-prose pre:not(#_){background:#fff}
+.chat-prose blockquote:not(#_){color:var(--n-muted)}
+.global-search-box:not(#_){background:#fff}
+.global-search-box input:not(#_){color:var(--n-ink)}
+.global-search-box .icon:not(#_){color:var(--n-muted)}
+.global-search-box kbd:not(#_){color:var(--n-muted)}
+.global-search-status:not(#_){color:var(--n-muted)}
+.global-result:not(#_){color:var(--n-ink);background:#fff}
+.global-result-icon:not(#_){color:var(--n-muted)}
+.global-result-copy>span:not(#_){color:var(--n-muted)}
+.global-result small:not(#_){color:var(--n-muted)}
+.global-result-arrow:not(#_){color:var(--n-muted)}
+.search-scope:not(#_){color:var(--n-muted)}
+.followup-card>p:not(#_){color:var(--n-muted)}
+.followup-card>small:not(#_){color:var(--n-muted)}
+.followup-card .followup-reply:not(#_){color:var(--n-accent)}
+.planning-controls>label:not(.search):not(#_){color:var(--n-muted)}
+.planning-note:not(#_){color:var(--n-muted)}
+.calendar-day header small:not(#_){color:var(--n-muted)}
+.calendar-day.is-today header strong:not(#_){color:var(--n-accent)}
+.calendar-day-hours:not(#_){color:var(--n-muted)}
+.calendar-day-hours.over-capacity:not(#_){color:var(--n-muted)}
+.calendar-item:not(#_){color:var(--n-ink)}
+.calendar-item small:not(#_){color:var(--n-muted)}
+.calendar-item span:not(#_){color:var(--n-muted)}
+.calendar-free:not(#_){color:var(--n-muted)}
+.forecast-chart>div:not(#_){color:var(--n-muted)}
+.forecast-checkpoints small:not(#_),.forecast-checkpoints span:not(#_){color:var(--n-muted)}
+.forecast-positive:not(#_){color:var(--n-accent)}
+.forecast-negative:not(#_){color:var(--n-muted)}
+.earlier-activity:not(#_){color:var(--n-muted)}
+.document-filters input:not(#_),.document-filters select:not(#_){background:#fff}
+.phone-navigation select:not(#_){background:#fff}
+.app.assistant-open .assistant:not(#_){background:#fff}
+.timer-banner strong:not(#_){color:var(--n-accent)}
+.meeting-proposals summary:not(#_){color:var(--n-ink)}
+.planning-controls input:not(#_),.planning-controls select:not(#_){background:#fff}
+.project-tabs:not(#_){background:#fff}
+.project-tabs button.active:not(#_){color:var(--n-accent);background:#fff}
+.project-workspace .panel:not(#_),.project-metrics>div:not(#_){background:#fff}
+.client-hero:not(#_){background:#fff}
+.client-heading .ops-client-avatar:not(#_){background:#fff}
+.client-workspace .client-tabs:not(#_){background:#fff}
+.client-workspace .client-tabs button.active:not(#_){color:var(--n-accent);background:#fff}
+.client-workspace .ops-stat:not(#_),.client-workspace .panel:not(#_){background:#fff}
+/* Lime used as a text colour (via variables) becomes the readable dark accent. */
+a:not(#_){color:var(--n-accent)}
+.eyebrow:not(#_){color:var(--n-accent)}
+.check:not(#_){color:var(--n-accent)}
+.chat-message a:not(#_){color:var(--n-accent)}
+.folder-button.active:not(#_){color:var(--n-accent)}
+body .tree-flag:not(#_){color:var(--n-accent)}
+body .wf-evidence a:not(#_){color:var(--n-accent)}
+body .env-card a:not(#_),body .release-row a:not(#_),body .ticket-code a:not(#_){color:var(--n-accent)}
+body .env-health.env-healthy:not(#_){color:var(--n-accent)}
+body .fav-toggle.on:not(#_){color:var(--n-accent)}
+body .cmd-item.active .icon:not(#_),body .cmd-item.active .cmd-label:not(#_){color:var(--n-accent)}
+body .pf-pill.pf-ok:not(#_){color:var(--n-accent)}
+body .ops-stat.pf-ok strong:not(#_){color:var(--n-accent)}
+/* Lime-filled elements (primary actions, current step, checked boxes) stay lime above the generated rules. */
+body .btn.primary:not(#_):not(#_),body .btn.soft.primary:not(#_):not(#_){background:var(--n-lime);color:var(--n-lime-ink)}
+body .usage-window i b:not(#_):not(#_){background:var(--n-lime)}
+body .assistant-compose .send:not(#_):not(#_){background:var(--n-lime);color:var(--n-lime-ink)}
+body .ticket-check input:checked+span:not(#_):not(#_){background:var(--n-lime)}
+body .req-field ins:not(#_):not(#_){background:#c6f43214;color:var(--n-ink)}
+body .wf-steps li.wf-current:not(#_):not(#_){color:var(--n-lime-ink);background:var(--n-lime)}
+body .bulk-pick input:checked+span:not(#_):not(#_){background:var(--n-lime)}
+body .pf-bar i:not(#_):not(#_){background:var(--n-lime)}
+body .nav>button.active:not(#_):not(#_),body .nav-group-trigger.group-active:not(#_):not(#_),body .nav-flyout button.active:not(#_):not(#_){background:#c6f432;color:#243006}
+body .composer-footer .send:not(#_):not(#_){background:var(--n-lime)}
+body .btn.primary:hover:not(#_):not(#_){background:#d0f74f}
+body .ticket-check input:checked+span:not(#_):not(#_),body .bulk-pick input:checked+span:not(#_):not(#_){background:var(--n-lime)}
