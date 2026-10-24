@@ -759,3 +759,24 @@ body .nav .count{display:inline-block;width:auto;min-width:0;height:auto;padding
 .panel-pad{padding:0 24px 24px}
 .spark-wrap{padding:16px 24px 24px;color:var(--n-ink)}
 .spark{display:block;width:100%;max-width:420px;height:56px}
+
+/* Things waiting for the owner, and the plan review dialog */
+.attention{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}
+.attention-card{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:16px 24px;border:1px solid var(--n-ink);border-radius:8px;background:var(--n-base)}
+.attention-card strong{font-size:13px;font-weight:600}
+.attention-card p{margin:2px 0 0;font-size:13px;color:var(--n-muted)}
+.assistant-content>.attention{margin:0 0 16px}
+.assistant-content>.attention .attention-card{padding:12px 16px}
+.plan-review h3{margin:20px 0 8px}
+.plan-item{padding:12px 0;border-bottom:1px solid var(--n-line)}
+.plan-item-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px}
+.plan-codes{display:flex;gap:8px;margin:6px 0}
+.plan-criteria{margin:6px 0;font-size:13px}
+.plan-criteria small{display:block;font-size:12px;color:var(--n-muted)}
+.plan-item details{font-size:13px;color:var(--n-muted)}
+.plan-item summary{cursor:pointer;color:var(--n-ink)}
+.plan-changes{margin:16px 0 0}
+.plan-changes textarea{width:100%;min-height:88px}
+.ask-dialog{max-width:480px}
+.ask-dialog label{display:block;margin:0 0 8px;font-size:13px;font-weight:500}
+.ask-dialog textarea{width:100%;min-height:88px}

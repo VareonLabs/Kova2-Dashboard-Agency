@@ -86,8 +86,8 @@ export function createChatPage(ctx){
 
   function render(){
     const engine=ctx.getEngine();
-    if(blank())return `<div class="cp cp-blank"><div class="cp-scroll" id="chat-scroll"><div class="cp-column"><img class="cp-mark" src="/vareon-mark.svg" alt="" aria-hidden="true"><div class="cp-compose">${ctx.composer({placeholder:`Ask ${engineName(engine)}…`,lead:pickers()})}</div>${signInNote()}${examples()}${recent()}</div></div></div>`;
-    return `<div class="cp cp-open"><div class="cp-scroll" id="chat-scroll"><div class="cp-column">${ctx.messages().map(messageHTML).join('')}${ctx.progress()}${ctx.isBusy()?'<div class="cp-working">Working on it…</div>':''}</div></div><div class="cp-dock"><div class="cp-column"><div class="cp-compose">${ctx.composer({placeholder:`Reply to ${engineName(engine)}…`})}</div></div></div></div>`;
+    if(blank())return `<div class="cp cp-blank"><div class="cp-scroll" id="chat-scroll"><div class="cp-column">${ctx.attention?.()||''}<img class="cp-mark" src="/vareon-mark.svg" alt="" aria-hidden="true"><div class="cp-compose">${ctx.composer({placeholder:`Ask ${engineName(engine)}…`,lead:pickers()})}</div>${signInNote()}${examples()}${recent()}</div></div></div>`;
+    return `<div class="cp cp-open"><div class="cp-scroll" id="chat-scroll"><div class="cp-column">${ctx.attention?.()||''}${ctx.messages().map(messageHTML).join('')}${ctx.progress()}${ctx.isBusy()?'<div class="cp-working">Working on it…</div>':''}</div></div><div class="cp-dock"><div class="cp-column"><div class="cp-compose">${ctx.composer({placeholder:`Reply to ${engineName(engine)}…`})}</div></div></div></div>`;
   }
   // The app redraws in the background (usage, streaming), so an open switcher is re-anchored rather than closed.
   function keepMenu(){

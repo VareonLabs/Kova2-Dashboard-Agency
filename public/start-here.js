@@ -11,7 +11,7 @@ export function createStartUI(ctx){
       const tabs=ctx.sectionTabs(sec);
       return `<section class="panel start-area"><div class="panel-head"><div><h2>${esc(sec.label)}</h2><small>${esc(sec.blurb||'')}</small></div></div><div class="start-pages">${tabs.map(([id,label,hint])=>`<button type="button" class="start-page" data-page="${id}"><strong>${esc(label)}</strong><span>${esc(hint||'')}</span></button>`).join('')}</div></section>`;
     }).join('');
-    return ctx.heading('START HERE','Start here','Everything in VareonHQ and what it is for. Press ⌘K at any time to search for anything.')+jobs+`<div class="start-grid">${areas}</div>`;
+    return ctx.heading('START HERE','Start here','Everything in VareonHQ and what it is for. Press ⌘K at any time to search for anything.')+(ctx.attention?.()||'')+jobs+`<div class="start-grid">${areas}</div>`;
   }
   return {render};
 }
