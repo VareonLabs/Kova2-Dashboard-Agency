@@ -1,31 +1,89 @@
 {
   "name": "vareonhq-app",
-  "version": "0.0.0",
+  "version": "0.8.0",
   "type": "module",
   "imports": {
     "#*": "./agent/*",
     "#evals/*": "./evals/*"
   },
   "scripts": {
-    "build": "eve build",
-    "deploy": "eve deploy",
-    "dev": "eve dev",
-    "eval": "eve eval",
-    "start": "eve start",
-    "typecheck": "tsc"
+    "start": "node server/server.mjs",
+    "dev": "node server/server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc",
+    "agent:dev": "eve dev",
+    "agent:build": "eve build",
+    "desktop": "electron .",
+    "pack:mac": "node desktop/prepare.mjs && electron-builder --mac dir --arm64"
   },
   "dependencies": {
+    "@azure/msal-node": "^7.1.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@napi-rs/canvas": "^1.0.13",
+    "@openai/codex-sdk": "^0.163.0",
     "@vercel/connect": "2.5.2",
     "ai": "^7.0.137",
     "eve": "^0.81.1",
+    "express": "^5.3.0",
+    "fflate": "^0.8.3",
+    "htmlparser2": "^12.0.0",
+    "jose": "^6.2.13",
+    "pdfjs-dist": "^6.4.299",
+    "sanitize-html": "^2.18.1",
     "zod": "4.5.4"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "24.x",
+    "electron": "^44.9.3",
+    "electron-builder": "^26.15.3",
     "typescript": "7.0.2"
   },
   "engines": {
     "node": "24.x"
+  },
+  "description": "Private local business workspace for VareonHQ",
+  "main": "desktop/main.cjs",
+  "productName": "VareonHQ",
+  "author": "VareonHQ",
+  "vareonLegacyDataDir": "/Users/cjperry/.codex/.chatgpt-projects/g-p-6aa9dcaa9b3481918a2df3104a3a2105/vareonhq-app/data",
+  "vareonNodePath": "/Users/cjperry/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+  "build": {
+    "appId": "com.vareonhq.desktop",
+    "productName": "VareonHQ",
+    "asar": false,
+    "directories": {
+      "output": "desktop-dist",
+      "buildResources": "build-resources"
+    },
+    "files": [
+      "desktop/main.cjs",
+      "server/**/*",
+      "public/**/*",
+      "package.json",
+      "node_modules/**/*",
+      "!**/test/**",
+      "!**/tests/**",
+      "!**/docs/**"
+    ],
+    "extraResources": [
+      {
+        "from": "build-resources/node",
+        "to": "node"
+      },
+      {
+        "from": "build-resources/keychain-helper",
+        "to": "keychain-helper"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.business",
+      "icon": "build-resources/VareonHQ.icns",
+      "identity": null,
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "VareonHQ uses the microphone when you start a voice message to your business assistant."
+      }
+    }
   }
-
 }

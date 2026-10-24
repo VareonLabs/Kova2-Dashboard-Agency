@@ -1,0 +1,10 @@
+export const cents=value=>Math.round(Number(value||0)*100);
+export function financeSummary(store,{clientId='',projectId='',now=new Date()}={}){
+  const projects=store.list('projects').filter(p=>(!clientId||p.clientId===clientId)&&(!projectId||p.id===projectId));
+  const matches=r=>(!clientId||r.clientId===clientId||projects.some(p=>p.id===r.projectId))&&(!projectId||r.projectId===projectId);
+  const invoices=store.list('invoices').filter(matches).map(invoice=>{const paid=store.list('payments').filter(p=>p.invoiceId===invoice.id).reduce((n,p)=>n+cents(p.amount),0);const outstanding=invoice.status==='Void'||invoice.status==='Draft'?0:Math.max(0,cents(invoice.amount)-paid);const overdue=outstanding>0&&invoice.dueDate&&invoice.dueDate.slice(0,10)<now.toLocaleDateString('en-CA',{timeZone:'Australia/Brisbane'});return {...invoice,paid:paid/100,outstanding:outstanding/100,state:invoice.status==='Void'?'Void':invoice.status==='Draft'?'Draft':outstanding===0?'Paid':overdue?'Overdue':paid>0?'Part paid':'Outstanding',needsFollowUp:!!outstanding&&(!!overdue||!!invoice.followUpDate&&invoice.followUpDate.slice(0,10)<=now.toLocaleDateString('en-CA',{timeZone:'Australia/Brisbane'}))};});
+  const costs=store.list('expenses').filter(matches),sum=(items,key)=>items.reduce((n,r)=>n+cents(r[key]),0)/100;
+  const totals={budget:sum(projects,'budget'),plannedCost:sum(projects,'plannedCost'),invoiced:sum(invoices.filter(i=>!['Draft','Void'].includes(i.status)),'amount'),paid:sum(invoices.filter(i=>i.status!=='Void'),'paid'),outstanding:sum(invoices,'outstanding'),overdue:sum(invoices.filter(i=>i.state==='Overdue'),'outstanding'),actualCost:sum(costs,'amount'),unpaidCosts:sum(costs.filter(e=>!e.paid),'amount')};
+  totals.expectedMargin=totals.budget-totals.actualCost;totals.cashAfterCosts=totals.paid-sum(costs.filter(e=>e.paid),'amount');totals.costVariance=totals.plannedCost-totals.actualCost;
+  return {currency:'AUD',totals,invoices,expenses:costs,followUps:invoices.filter(i=>i.needsFollowUp),projects};
+}

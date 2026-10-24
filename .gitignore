@@ -1,10 +1,16 @@
-node_modules
+node_modules/
+.eve/
 .env*
-.eve
-.vercel
-.next
-.output
-.nitro
-dist
+!.env.example
+data/
 .DS_Store
-*.tsbuildinfo
+test-results/
+
+desktop-dist/
+build-resources/node
+build-resources/*.iconset/
+
+build-resources/keychain-helper
+
+# Working screenshots from design reviews
+/*.png

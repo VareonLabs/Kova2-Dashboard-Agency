@@ -53,3 +53,18 @@ A setup may report `eve link` as a prerequisite; run it, then retry the continua
 ## Validate the change
 
 Run the validation the task requests. When it does not establish the behavior you changed, run the narrowest relevant check.
+
+## VareonHQ design preferences
+
+The owner now requires a flat light neutral theme (24 Oct 2026): cool light-grey canvas, white surfaces separated by thin borders, charcoal text. No neumorphism: no paired light/dark shadows and no inset wells. Use official VareonHQ lime (#C6F432) sparingly for primary actions; use dark readable text on light surfaces. This supersedes the previous dark-theme preference. No purple. Never reuse the rejected sage, olive or cream palette. Official bright lime is explicitly approved. Use the official VareonHQ logo, not an invented mark.
+
+## Desktop runtime and business data
+
+The installed app is `/Users/cjperry/Desktop/VareonHQ.app`. Its active business data is `/Users/cjperry/Library/Application Support/VareonHQ/business-data/`; the original `data/` directory is a preserved migration source, not necessarily current. Do not replace current business data with the development copy. Prefer reusing the active app on localhost:4317. Keep test content in an isolated temporary data directory. The desktop build bundles Node 24 and requires no development server. Rebuild after runtime source changes, close the owned app before replacing its bundle, then reopen it.
+
+## Subscription and credential requirements
+
+The GPT engine must use official ChatGPT-plan OAuth, never ask for an API key or silently fall back to API billing. Codex uses the local ChatGPT sign-in. The native helper `desktop/keychain.swift` handles full credential data over stdin/stdout; do not restore the broken `security -i` writer. Bundle the helper with the desktop app. Credentials use versioned `-v2` Keychain entries; failed legacy Outlook/GPT entries must be replaced by fresh sign-in. Run the opt-in native Keychain regression check when changing credential handling, using synthetic test entries only.
+
+## Permanent private preview
+The owner requires every update to be accessible and verified at https://catlins-macbook-air.tail9bef0e.ts.net/. Tailscale Serve proxies localhost:4320. Keep the backend bound to loopback, preserve the private-access owner checks, and make the desktop app reuse port 4320. Do not create public hosting or Funnel.
