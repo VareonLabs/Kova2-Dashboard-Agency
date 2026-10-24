@@ -34,13 +34,16 @@ export const schemas = {
   clientAssets:z.object({name,kind:z.enum(['Domain','Hosting','Repository','Email','Social account','Analytics','Design file','Other']).default('Other'),clientId:z.string().min(1,'Choose a client').max(100),projectId:ref,owner:z.enum(['Client','Agency','Third party']).default('Client'),status:z.enum(['Agency-held','Handed over','Not applicable']).default('Agency-held'),handoverDate:z.string().refine(v=>!v||realDay(v),'Choose a valid handover date').default(''),accessNote:z.string().trim().max(500).optional().default('').refine(v=>!/(?<![A-Za-z0-9])(pass(word|code)?|pwd|secret|token|api[_ -]?key)\s*[:=]/i.test(v),'Record where the login is kept (for example the password manager entry), never the password itself.'),renewalDate:date,notes:optional}),
   supportRequests:z.object({title:name,clientId:z.string().min(1,'Choose a client').max(100),projectId:ref,priority:z.enum(['Low','Normal','Urgent']).default('Normal'),status:z.enum(['New','In progress','Waiting on client','Resolved']).default('New'),channel:z.enum(['Email','Phone','Message','Other']).default('Email'),reportedOn:date,dueBy:date,resolvedAt:z.string().max(40).optional().default(''),assigneeId:ref,notes:optional}),
   deals:z.object({title:name,clientId:ref,prospectId:ref,value:money.default(0),stage:z.enum(['Qualified','Proposal sent','Negotiation','Won','Lost']).default('Qualified'),expectedClose:date,proposalId:ref,lostReason:z.string().trim().max(500).optional().default(''),closedAt:z.string().max(40).optional().default(''),notes:optional}),
-  clientContacts:z.object({name,email:z.union([z.literal(''),z.email()]).optional().default(''),phone:optional,role:z.string().trim().max(120).optional().default(''),clientId:ref,prospectId:ref,primary:z.boolean().default(false),marketingConsent:z.enum(['Unknown','Opted in','Opted out']).default('Unknown'),consentDate:z.string().max(40).optional().default(''),consentSource:z.string().trim().max(300).optional().default(''),notes:optional}),
+  clientContacts:z.object({name,email:z.union([z.literal(''),z.email()]).optional().default(''),phone:optional,role:z.string().trim().max(120).optional().default(''),clientId:ref,prospectId:ref,primary:z.boolean().default(false),marketingConsent:z.enum(['Unknown','Opted in','Opted out']).default('Unknown'),smsConsent:z.enum(['Unknown','Opted in','Opted out']).default('Unknown'),smsConsentSource:z.string().trim().max(300).optional().default(''),smsConsentDate:z.string().max(40).optional().default(''),consentDate:z.string().max(40).optional().default(''),consentSource:z.string().trim().max(300).optional().default(''),notes:optional}),
   dashboards:z.object({name,widgets:z.array(z.string()).max(30).default([]).refine(w=>w.every(k=>METRIC_KEYS.includes(k))&&new Set(w).size===w.length,'Choose each figure from the list, once.')}),
   forms:z.object({name,description:optional,status:z.enum(['Draft','Live','Closed']).default('Draft'),clientId:ref,fields:z.array(z.object({id:z.string().regex(/^[a-z0-9_]{1,40}$/,'Field ids use lowercase letters, numbers and underscores'),label:z.string().trim().min(1,'Give every field a label').max(120),type:z.enum(Object.keys(FIELD_TYPES)).default('text'),required:z.boolean().default(false),options:z.array(z.string().trim().min(1).max(120)).max(30).default([]),help:z.string().trim().max(200).optional().default('')})).max(40).default([]),submitLabel:z.string().trim().max(40).default('Send'),thanks:z.string().trim().max(500).default('Thank you. We have your response.'),consentText:z.string().trim().max(300).default(''),createLead:z.boolean().default(false),leadMap:z.partialRecord(z.enum(LEAD_MAP),z.string().max(40)).default({})}).superRefine((f,ctx)=>{const ids=f.fields.map(x=>x.id);if(new Set(ids).size!==ids.length)ctx.addIssue({code:'custom',message:'Two fields share an id.'});for(const x of f.fields)if(x.type==='select'&&!x.options.length)ctx.addIssue({code:'custom',message:`“${x.label}” needs at least one option.`});for(const [k,id] of Object.entries(f.leadMap))if(id&&!ids.includes(id))ctx.addIssue({code:'custom',message:`The lead ${k} points at a field that does not exist.`});if(f.createLead&&!f.leadMap.name)ctx.addIssue({code:'custom',message:'Choose which field holds the lead’s name.'});}),
   formSubmissions:z.object({formId:z.string().min(1).max(100),title:name,answers:z.record(z.string(),z.union([z.string(),z.boolean()])).default({}),fieldLabels:z.record(z.string(),z.string()).default({}),consent:z.boolean().default(false),consentText:z.string().max(300).default(''),prospectId:ref,handled:z.boolean().default(false)}),
   answerChecks:z.object({websiteId:z.string().min(1,'Choose a website').max(100),prompt:z.string().trim().min(1,'Write the question you asked').max(500),engine:z.enum(ENGINES).default('ChatGPT'),checkedOn:z.string().refine(realDay,'Choose the date you checked'),result:z.enum(RESULTS).default('Not mentioned'),competitors:z.string().trim().max(300).optional().default(''),notes:optional}),
   adAccounts:z.object({platform:z.enum(['Google Ads','Meta Ads']),name,accountId:z.string().trim().max(40).refine(v=>!v||/^(act_)?[0-9][0-9-]{3,}$/.test(v),'Use the account number, such as 123-456-7890 or act_1234567890').optional().default(''),clientId:ref,currency:z.enum(['AUD','USD']).default('AUD'),status:z.enum(['Not connected','Connected','Needs attention']).default('Not connected'),notes:optional}),
   socialAccounts:z.object({platform:z.enum(['Facebook','Instagram','LinkedIn','X','TikTok','YouTube']),name,handle:z.string().trim().max(100).optional().default(''),url:web,clientId:ref,status:z.enum(['Not connected','Connected','Needs attention']).default('Not connected'),notes:optional}),
+  phoneLines:z.object({name,number:z.string().trim().regex(/^\+[1-9]\d{6,14}$/,'Use the international format, such as +61412345678'),provider:z.enum(['Twilio','Other']).default('Twilio'),purpose:z.enum(['Calls and texts','Calls only','Texts only']).default('Calls and texts'),status:z.enum(['Not connected','Connected','Needs attention']).default('Not connected'),notes:optional}),
+  calls:z.object({clientId:ref,prospectId:ref,contactId:ref,direction:z.enum(['Outgoing','Incoming']).default('Outgoing'),outcome:z.enum(['Completed','Missed','Voicemail','No answer','Busy']).default('Completed'),startedAt:z.string().datetime({offset:true}),durationSeconds:z.coerce.number().int().min(0).max(86400).default(0),number:z.string().trim().max(40).optional().default(''),summary:optional,recordingId:ref,recordingNotice:z.boolean().default(false),source:z.enum(['Logged by hand','Twilio']).default('Logged by hand'),providerSid:z.string().max(80).optional().default('')}),
+  smsMessages:z.object({clientId:ref,prospectId:ref,contactId:ref,direction:z.enum(['Outgoing','Incoming']).default('Outgoing'),body:z.string().trim().min(1,'Write the message').max(1600),number:z.string().trim().max(40).optional().default(''),at:z.string().datetime({offset:true}),status:z.enum(['Logged','Draft','Queued','Sent','Delivered','Failed','Received']).default('Logged'),source:z.enum(['Logged by hand','Twilio']).default('Logged by hand'),providerSid:z.string().max(80).optional().default('')}),
   services:z.object({name,description:optional,billing:z.enum(['One-off','Monthly']).default('One-off'),unit:z.string().trim().max(40).default('project'),unitPrice:money.default(0),active:z.boolean().default(true)}),
   proposals:z.object({title:name,clientId:z.string().min(1,'Choose a client').max(100),projectId:ref,status:z.enum(['Draft','Sent','Accepted','Declined','Expired']).default('Draft'),validUntil:date,lineItems:z.array(z.object({serviceId:ref,description:z.string().trim().min(1,'Describe each line').max(500),quantity:z.coerce.number().min(0.01).max(100000).default(1),unitPrice:money})).max(60).default([]),notes:optional,contractId:ref,depositPercent:z.coerce.number().min(0).max(100).default(0),acceptedAt:z.string().max(40).optional().default('')}),
   variations:z.object({proposalId:z.string().min(1).max(100),title:name,amountChange:z.coerce.number().finite().min(-1e9).max(1e9).refine(v=>Math.abs(v*100-Math.round(v*100))<0.0001,'Use at most two decimal places'),reason:optional,status:z.enum(['Proposed','Approved','Rejected']).default('Proposed')}),
@@ -126,14 +129,36 @@ export function saveRecord(store, collection, input, id, actor='You',options={})
     if(data.clientId&&!store.get('clients',data.clientId))throw new Error('Choose an existing client for this contact.');
     if(data.prospectId&&!store.get('prospects',data.prospectId))throw new Error('Choose an existing prospect for this contact.');
     if(data.email&&store.list('clientContacts').some(c=>c.id!==id&&c.email.toLowerCase()===data.email.toLowerCase()&&c.clientId===data.clientId&&c.prospectId===data.prospectId))throw new Error('This email is already a contact here.');
-    const before=previous.marketingConsent||'Unknown';
-    if(data.marketingConsent!==before){
-      if(data.marketingConsent==='Opted in'&&!data.consentSource)throw new Error('Record how consent was given (for example “Ticked the form on harbour.com.au, 24 Oct”).');
-      if(before==='Opted out'&&data.marketingConsent==='Opted in'&&data.consentSource===previous.consentSource)throw new Error('This person opted out. Record the new consent they gave before opting them back in.');
-      data.consentDate=new Date().toISOString();
+    for(const [field,sourceField,dateField,what] of [['marketingConsent','consentSource','consentDate','marketing email'],['smsConsent','smsConsentSource','smsConsentDate','text message']]){
+      const before=previous[field]||'Unknown';
+      if(data[field]!==before){
+        if(data[field]==='Opted in'&&!data[sourceField])throw new Error(`Record how consent to ${what}s was given (for example “Ticked the form on harbour.com.au, 24 Oct”).`);
+        if(before==='Opted out'&&data[field]==='Opted in'&&data[sourceField]===previous[sourceField])throw new Error(`This person opted out of ${what}s. Record the new consent they gave before opting them back in.`);
+        data[dateField]=new Date().toISOString();
+      }
+      if(data[field]==='Unknown')data[dateField]='';
     }
-    if(data.marketingConsent==='Unknown'){data.consentDate='';}
     if(data.primary&&!data.clientId)throw new Error('Only a client contact can be the primary contact.');
+  }
+  if(['calls','smsMessages'].includes(collection)){
+    const noun=collection==='calls'?'call':'message';
+    if(!data.clientId&&!data.prospectId)throw new Error(`Link the ${noun} to a client or a prospect.`);
+    if(data.clientId&&!store.get('clients',data.clientId))throw new Error(`Choose an existing client for this ${noun}.`);
+    if(data.prospectId&&!store.get('prospects',data.prospectId))throw new Error(`Choose an existing prospect for this ${noun}.`);
+    const contact=data.contactId?store.get('clientContacts',data.contactId):null;
+    if(data.contactId&&!contact)throw new Error('Choose an existing contact.');
+    if(contact&&(data.clientId&&contact.clientId!==data.clientId||!data.clientId&&data.prospectId&&contact.prospectId!==data.prospectId))throw new Error('That contact belongs to someone else.');
+    if(data.source==='Twilio'&&!options.provider)throw new Error(`Twilio ${noun}s are recorded by the phone connection, which is not set up yet.`);
+    if(collection==='calls'&&data.recordingId){
+      if(!store.get('recordings',data.recordingId))throw new Error('That recording no longer exists.');
+      if(!data.recordingNotice)throw new Error('Confirm the other person was told the call was being recorded before attaching a recording.');
+    }
+    if(collection==='smsMessages'){
+      if(['Queued','Sent','Delivered','Failed'].includes(data.status)&&!options.provider)throw new Error('Texts are sent and tracked only once a phone line is connected. Log the message instead, or keep it as a draft.');
+      if(data.status==='Draft'&&data.direction!=='Outgoing')throw new Error('Only an outgoing message can be a draft.');
+      if(data.status==='Received'&&data.direction!=='Incoming')throw new Error('A received message must be incoming.');
+      if(data.status==='Draft'&&contact?.smsConsent==='Opted out')throw new Error(`${contact.name} opted out of text messages. Do not draft texts to them.`);
+    }
   }
   if(collection==='forms'){
     if(data.clientId&&!store.get('clients',data.clientId))throw new Error('Choose an existing client for this form.');
@@ -142,6 +167,7 @@ export function saveRecord(store, collection, input, id, actor='You',options={})
   if(collection==='formSubmissions'&&!options.formResponse&&!id)throw new Error('Responses come from filling in a form.');
   if(collection==='formSubmissions'&&id&&JSON.stringify(previous.answers)!==JSON.stringify(data.answers))throw new Error('A response cannot be edited. Mark it handled instead.');
   if(collection==='answerChecks'&&!store.get('websites',data.websiteId))throw new Error('Choose an existing website for this check.');
+  if(collection==='phoneLines'&&data.status==='Connected'&&previous.status!=='Connected')throw new Error('A phone line becomes Connected only when its sign-in succeeds. Phone connections are not set up yet.');
   if(['adAccounts','socialAccounts'].includes(collection)){
     if(data.clientId&&!store.get('clients',data.clientId))throw new Error('Choose an existing client for this account.');
     if(data.status==='Connected'&&previous.status!=='Connected')throw new Error('An account becomes Connected only when its sign-in succeeds. Connections are not set up yet.');
@@ -327,6 +353,10 @@ export function saveRecord(store, collection, input, id, actor='You',options={})
   if(collection==='tasks'&&options.undoOf)data.completedAt=input.completedAt||'';
   const result = store.put(collection, {...previous, ...data,...(options.restore?{createdAt:input.createdAt}:{}), ...(id ? {id} : {})},{actor,undoOf:options.undoOf});
   if(collection==='proposals'&&result.status==='Sent'&&previous.status!=='Sent')for(const d of store.list('deals').filter(d=>d.proposalId===result.id&&d.stage==='Qualified')){const moved=store.put('deals',{...d,stage:'Proposal sent'},{actor});fireRules(store,'deals',d,moved,actor);}
+  if(collection==='smsMessages'&&result.direction==='Incoming'&&result.contactId&&/^\s*(stop|stopall|unsubscribe|cancel|end|quit)\s*[.!]?\s*$/i.test(result.body)){
+    const c=store.get('clientContacts',result.contactId);
+    if(c&&c.smsConsent!=='Opted out')store.put('clientContacts',{...c,smsConsent:'Opted out',smsConsentSource:`Replied “${result.body.trim().slice(0,20)}” on ${result.at.slice(0,10)}`,smsConsentDate:new Date().toISOString()},{actor});
+  }
   if(collection==='clientContacts'&&result.primary)for(const c of store.list('clientContacts').filter(c=>c.id!==result.id&&c.clientId===result.clientId&&c.primary))store.put('clientContacts',{...c,primary:false},{actor});
   if(collection==='invoices'&&result.status==='Void'&&previous.status!=='Void')releaseTime(store,result.id,actor);
   if(collection==='contracts'&&result.status==='Signed'&&previous.status!=='Signed'&&result.depositPercent>0&&!result.depositInvoiceId){
@@ -351,6 +381,8 @@ export function deleteRecord(store,collection,id,actor='You',options={}) {
   if(collection==='clients'&&(store.list('clientAssets').some(a=>a.clientId===id)||store.list('supportRequests').some(r=>r.clientId===id)))throw new Error('This client has assets or support requests. Update or remove those first.');
   if(['adAccounts','socialAccounts'].includes(collection))removeAccountStats(store,collection,id);
   if(collection==='forms'&&store.list('formSubmissions').some(r=>r.formId===id))throw new Error('This form has responses. Close it instead of deleting it.');
+  if(collection==='clients'&&(store.list('calls').some(c=>c.clientId===id)||store.list('smsMessages').some(c=>c.clientId===id)))throw new Error('This client has calls or text messages. Remove those first.');
+  if(collection==='clientContacts'&&(store.list('calls').some(c=>c.contactId===id)||store.list('smsMessages').some(c=>c.contactId===id)))throw new Error('This contact has calls or text messages. Remove those first.');
   if(collection==='clients'&&store.list('clientContacts').some(c=>c.clientId===id))throw new Error('This client has contacts. Update or remove those first.');
   if(collection==='clients'&&store.list('deals').some(d=>d.clientId===id))throw new Error('This client has deals. Update or remove those first.');
   if(collection==='clients'&&store.list('proposals').some(p=>p.clientId===id))throw new Error('This client has proposals. Update or remove those first.');
@@ -502,6 +534,7 @@ export function submitForm(store,formId,raw,actor='You',{test=false}={}){
   return saveRecord(store,'formSubmissions',{formId,title:form.name,answers,fieldLabels:Object.fromEntries(form.fields.map(f=>[f.id,f.label])),consent,consentText:consent?form.consentText:'',prospectId},undefined,actor,{formResponse:true});
 }
 export const canMarket=contact=>contact.marketingConsent==='Opted in';
+export const canText=contact=>contact.smsConsent==='Opted in';
 export const proposalTotal=(proposal)=>Math.round((proposal.lineItems||[]).reduce((n,l)=>n+Math.round(l.quantity*l.unitPrice*100),0))/100;
 export function proposalValue(store,proposal){
   const approved=store.list('variations').filter(v=>v.proposalId===proposal.id&&v.status==='Approved').reduce((n,v)=>n+Math.round(v.amountChange*100),0);
@@ -523,5 +556,5 @@ export function acceptProposal(store,proposalId,actor='You'){
   return {proposal:accepted,contract};
 }
 export function snapshot(store,limit=1000) {
-  return Object.fromEntries(['clients','projects','designs','designRevisions','services','proposals','variations','retainers','people','forms','formSubmissions','answerChecks','adAccounts','socialAccounts','deals','clientContacts','dashboards','clientAssets','supportRequests','tasks','contracts','posts','emails','notes','automations','runs','approvals','messages','conversations','chatScopes','activity','codexJobs','media','prospects','prospectTouches','invoices','payments','expenses','resources','documents','renewals','timeEntries','meetingNotes','onboardings','contacts','mailFolders','previews','websites','meetings','forecastItems','reportSchedules','onboardingTemplates','onboardings','renewals','timeEntries','meetingNotes','meetingProposals','timeTimers','ticketComments','savedViews','listViews','requirements','prdRevisions','projectStandards','standardRevisions','standardExceptions','ticketEvidence','repositories','ticketLinks','environments','releases','deliveryRuns','deliveryPlans','projectTemplates','templateVersions','handoffs','automationRules','automationRuns','automationAlerts'].map(c=>[c,store.list(c).slice(0,c==='activity'?100:limit)]));
+  return Object.fromEntries(['clients','projects','designs','designRevisions','services','proposals','variations','retainers','people','forms','formSubmissions','answerChecks','adAccounts','socialAccounts','phoneLines','calls','smsMessages','deals','clientContacts','dashboards','clientAssets','supportRequests','tasks','contracts','posts','emails','notes','automations','runs','approvals','messages','conversations','chatScopes','activity','codexJobs','media','prospects','prospectTouches','invoices','payments','expenses','resources','documents','renewals','timeEntries','meetingNotes','onboardings','contacts','mailFolders','previews','websites','meetings','forecastItems','reportSchedules','onboardingTemplates','onboardings','renewals','timeEntries','meetingNotes','meetingProposals','timeTimers','ticketComments','savedViews','listViews','requirements','prdRevisions','projectStandards','standardRevisions','standardExceptions','ticketEvidence','repositories','ticketLinks','environments','releases','deliveryRuns','deliveryPlans','projectTemplates','templateVersions','handoffs','automationRules','automationRuns','automationAlerts'].map(c=>[c,store.list(c).slice(0,c==='activity'?100:limit)]));
 }

@@ -4,8 +4,8 @@ import {resolve,dirname,sep} from 'node:path';
 import {createHash,randomUUID,randomBytes,scryptSync,createCipheriv,createDecipheriv} from 'node:crypto';
 import {zipSync,unzipSync} from 'fflate';
 import {schemas} from './domain.mjs';
-const roots=['assistant','chat-files','media','attachments','meeting-recordings'];
-const restored=[...Object.keys(schemas),'onboardings','meetingProposals','renewalHistory','conversations','chatScopes','messages','chatFiles','media','attachments','contacts','mailFolders','memoryHistory','changes','activity','clientReports','websiteReports','websiteAudits','forecastSettings','workloadSettings','notificationStates'];
+const roots=['assistant','chat-files','media','attachments','meeting-recordings','recordings'];
+const restored=[...Object.keys(schemas),'onboardings','meetingProposals','renewalHistory','conversations','chatScopes','messages','chatFiles','recordings','media','attachments','contacts','mailFolders','memoryHistory','changes','activity','clientReports','websiteReports','websiteAudits','forecastSettings','workloadSettings','notificationStates'];
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const nameOK=id=>/^[a-f0-9-]{36}$/i.test(id);
 function safe(root,relative){if(typeof relative!=='string'||relative.includes('\\')||relative.startsWith('/')||relative.split('/').some(p=>!p||p==='.'||p==='..'))throw new Error('Unsafe backup path');const result=resolve(root,relative);if(!result.startsWith(root+sep))throw new Error('Unsafe backup path');let path=root;for(const part of relative.split('/')){path=resolve(path,part);if(existsSync(path)&&lstatSync(path).isSymbolicLink())throw new Error('Backup paths cannot contain symbolic links');}return result;}

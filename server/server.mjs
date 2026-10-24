@@ -16,6 +16,7 @@ import { createStore, defaults } from './store.mjs';
 import { snapshot, saveRecord, deleteRecord, approvePrdRevision, approveStandardRevision, approveDesignRevision, acceptProposal, submitForm, invoiceUnbilledTime, invoiceRetainer } from './domain.mjs';
 import { createActions } from './actions.mjs';
 import { saveProfile, defaultProfile } from './profile.mjs';
+import { saveRecording, removeRecording, MAX_RECORDING } from './recordings.mjs';
 import { importAdStats, adSummary, importSocialStats, socialSummary } from './ads-social.mjs';
 import { createAssistant } from './assistant.mjs';
 import { createOutlook } from './outlook.mjs';
@@ -175,7 +176,7 @@ export async function createApp(options={}) {
   app.post('/api/designs/:id/revisions',(req,res)=>res.json(approveDesignRevision(store,req.params.id,req.body||{})));
   app.post('/api/records/:collection',(req,res)=>res.json(saveRecord(store,req.params.collection,req.body)));
   app.put('/api/records/:collection/:id',(req,res)=>res.json(saveRecord(store,req.params.collection,req.body,req.params.id)));
-  app.delete('/api/records/:collection/:id',(req,res)=>{deleteRecord(store,req.params.collection,req.params.id);res.json({ok:true});});
+  app.delete('/api/records/:collection/:id',(req,res)=>{const recordingId=req.params.collection==='calls'?store.get('calls',req.params.id)?.recordingId:'';deleteRecord(store,req.params.collection,req.params.id);if(recordingId)removeRecording(store,directory,recordingId);res.json({ok:true});});
   app.put('/api/favourites',(req,res)=>{const {kind,id,on}=req.body||{};if(!['projects','clients'].includes(kind)||typeof id!=='string'||!store.get(kind,id))throw new Error('Choose an existing project or client.');const current=(store.settings().favourites||[]).filter(f=>store.get(f.kind,f.id)&&!(f.kind===kind&&f.id===id));if(on===true){if(current.length>=12)throw new Error('Pin up to 12 favourites.');current.unshift({kind,id});}store.setting('favourites',current);res.json(current);});
   app.put('/api/settings',(req,res)=>{
     for(const key of Object.keys(req.body))if(!['microsoftClientId','microsoftTenant','publicBaseUrl'].includes(key))return res.status(400).json({error:'Unsupported setting'});
@@ -188,6 +189,9 @@ export async function createApp(options={}) {
   app.get('/api/ads/:id/summary',(req,res)=>res.json(adSummary(store,req.params.id,Math.min(365,Math.max(1,Number(req.query.days)||28)))));
   app.post('/api/social/:id/import',(req,res)=>res.json(importSocialStats(store,req.params.id,req.body?.csv)));
   app.get('/api/social/:id/summary',(req,res)=>res.json(socialSummary(store,req.params.id,Math.min(365,Math.max(1,Number(req.query.days)||90)))));
+  app.post('/api/recordings',express.raw({type:()=>true,limit:MAX_RECORDING}),(req,res)=>res.json(saveRecording(store,directory,{name:decodeURIComponent(req.headers['x-vareon-filename']||'Recording'),bytes:req.body})));
+  app.delete('/api/recordings/:id',(req,res)=>{if(store.list('calls').some(c=>c.recordingId===req.params.id))throw new Error('This recording belongs to a call. Delete the call instead.');removeRecording(store,directory,req.params.id);res.json({ok:true});});
+  app.get('/api/recordings/:id/file',(req,res)=>{const item=store.get('recordings',req.params.id);if(!item||!/^[a-f0-9-]{36}$/i.test(item.id))return res.status(404).end();res.set({'Content-Type':item.contentType,'Content-Security-Policy':"default-src 'none'; sandbox",'Content-Disposition':'inline','X-Content-Type-Options':'nosniff'});res.sendFile(resolve(directory,'recordings',item.id));});
   app.get('/api/profile',(req,res)=>res.json(defaultProfile(store.settings())));
   app.put('/api/profile',(req,res)=>res.json(saveProfile(store,req.body||{})));
   app.post('/api/chatgpt/authorize',async(req,res)=>res.json(await chatgpt.authorize()));

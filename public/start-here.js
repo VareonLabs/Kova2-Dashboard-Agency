@@ -3,7 +3,7 @@ export function createStartUI(ctx){
   const {esc,icon}=ctx;
   const JOBS=[
     ['New client','clients','users'],['New lead','prospects','users'],['New proposal','proposals','file'],['New invoice','invoices','file'],
-    ['Log time','timeEntries','clock'],['New project','projects','folder'],['Log a support request','supportRequests','shield'],['New note','notes','file']
+    ['Log a call','calls','phone'],['Log time','timeEntries','clock'],['New project','projects','folder'],['Log a support request','supportRequests','shield'],['New note','notes','file']
   ];
   function render(){
     const jobs=`<section class="panel start-jobs"><div class="panel-head"><div><h2>Do something now</h2><small>The jobs people start most</small></div></div><div class="start-job-row">${JOBS.map(([label,collection,symbol])=>`<button type="button" class="btn" data-new="${collection}">${icon(symbol)}${esc(label)}</button>`).join('')}<button type="button" class="btn" data-page="chat">${icon('chat')}Ask the assistant</button></div></section>`;
