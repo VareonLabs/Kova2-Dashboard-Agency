@@ -5,6 +5,7 @@
 //   double  two parallel lines (borders or 1px rings) 1-6px apart over most of their length
 //   clip    text cut off by its box without an ellipsis
 //   overlap two controls (buttons, links, fields, breadcrumb names) drawn on top of each other
+//   offscreen a control pushed past the edge of the window
 // Returns {pages, total, findings:[{check, where, detail, count, pages}]}.
 window.layoutAudit = async function layoutAudit({pages=null, settle=550}={}){
   const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -57,13 +58,15 @@ window.layoutAudit = async function layoutAudit({pages=null, settle=550}={}){
     // Dialogs, drawers and menus are meant to sit over the page, so only controls on the same layer are compared.
     // Pinned (sticky) bars are their own layer too: content is meant to scroll underneath them.
     const layer=el=>{for(let e=el;e&&e!==document.body;e=e.parentElement){if(e.matches('.modal-overlay,#command-root,#cp-menu,.nav-flyout,.page-tabs-menu,.usage-card'))return e;const p=getComputedStyle(e).position;if(p==='sticky'||p==='fixed')return e;}return document.body;};
+    // offscreen: a visible control pushed past the window edge (the top bar overflowing on a phone, for example).
+    for(const b of boxes){if(layer(b.el)===document.body&&(b.r.right>innerWidth+1||b.r.left<-1))add('offscreen',b.el,`${Math.round(Math.max(b.r.right-innerWidth,-b.r.left))}px outside the window`,page);}
     for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){const A=boxes[i],B=boxes[j];if(A.el.contains(B.el)||B.el.contains(A.el)||layer(A.el)!==layer(B.el))continue;const w=Math.min(A.r.right,B.r.right)-Math.max(A.r.left,B.r.left),h=Math.min(A.r.bottom,B.r.bottom)-Math.max(A.r.top,B.r.top);if(w>2&&h>2){const k=[sig(A.el),sig(B.el)].sort().join('  ×  ');const f=findings.get('overlap|'+k)||{check:'overlap',where:k,detail:`${Math.round(w)}×${Math.round(h)}px on top of each other`,count:0,pages:new Set()};f.count++;f.pages.add(page);findings.set('overlap|'+k,f);}}
     // clip
     for(const el of root.querySelectorAll('button,a,span,strong,small,label,h1,h2,h3,p,td,th,summary,.nav-label')){
       if(!visible(el))continue;const cs=getComputedStyle(el);if(cs.overflow==='visible'||cs.textOverflow==='ellipsis')continue;if(el.scrollWidth>el.clientWidth+1&&el.clientWidth>0&&[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))add('clip',el,`${el.scrollWidth-el.clientWidth}px of text hidden`,page);
     }
   }
-  const all=pages||['Chat','Inbox','My work','Tasks','Reviews','Clients','Pipeline','Projects','Calendar & workload','Budgets & invoices','Contracts','Client reports','Automations','Marketing','Website analytics','Media library','Prospect follow-ups','Client onboarding','Time & profitability','Meeting notes','Notepad','Live coding preview','Codex workspace','Portfolio','Overview','Cash-flow forecast','Document library','Renewals & reviews','Notifications','Technology','Connections','AI project','Action history','Backups & restore','Workspace setup'];
+  const all=pages||['Chat','Inbox','My work','Tasks','Reviews','Clients','Pipeline','Projects','Calendar & workload','Budgets & invoices','Contracts','Client reports','Automations','Marketing','Website analytics','Media library','Prospect follow-ups','Client onboarding','Time & profitability','Meeting notes','Notepad','Live coding preview','Codex workspace','Portfolio','Overview','Cash-flow forecast','Document library','Renewals & reviews','Notifications','Technology','Connections','AI project','Action history','Backups & restore','Workspace setup','Proposals','Retainers','Team & capacity','Assets & handover','Support','Deals','Contacts','Dashboards'];
   let visited=0;
   for(const label of all){if(await go(label)){visited++;scan(label);}}
   // one client page, one project page, the editor drawer and the command menu

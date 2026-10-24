@@ -48,3 +48,20 @@ test('inactive people are left out, and assignment rules protect the plan',t=>{
   assert.equal(saveRecord(store,'tasks',{notes:'still ok'},task.id).assigneeId,ana.id);
   assert.equal(teamLoad(snapshot(store),{now:NOW}).rows.length,0);
 });
+
+test('contacts need a company, one primary per client, and consent that is recorded and sticky',t=>{
+  const store=fixture(t),client=saveRecord(store,'clients',{name:'Harbour Co'});
+  assert.throws(()=>saveRecord(store,'clientContacts',{name:'Orphan'}),/client or a prospect/);
+  const a=saveRecord(store,'clientContacts',{name:'Ana',email:'ana@harbour.com',clientId:client.id,primary:true});
+  const b=saveRecord(store,'clientContacts',{name:'Ben',email:'ben@harbour.com',clientId:client.id,primary:true});
+  assert.equal(store.get('clientContacts',a.id).primary,false);
+  assert.equal(b.primary,true);
+  assert.throws(()=>saveRecord(store,'clientContacts',{name:'Ana 2',email:'ANA@harbour.com',clientId:client.id}),/already a contact/);
+  assert.throws(()=>saveRecord(store,'clientContacts',{marketingConsent:'Opted in'},a.id),/how consent was given/);
+  const opted=saveRecord(store,'clientContacts',{marketingConsent:'Opted in',consentSource:'Form on harbour.com, 24 Oct'},a.id);
+  assert.ok(opted.consentDate);
+  saveRecord(store,'clientContacts',{marketingConsent:'Opted out'},a.id);
+  assert.throws(()=>saveRecord(store,'clientContacts',{marketingConsent:'Opted in'},a.id),/opted out/);
+  assert.equal(saveRecord(store,'clientContacts',{marketingConsent:'Opted in',consentSource:'Re-subscribed by email, 30 Oct'},a.id).marketingConsent,'Opted in');
+  assert.throws(()=>deleteRecord(store,'clients',client.id),/linked records|contacts/);
+});
