@@ -13,8 +13,10 @@ import { fileURLToPath } from 'node:url';
 import { mkdirSync,watch,readFileSync,writeFileSync } from 'node:fs';
 import { randomBytes,timingSafeEqual,randomUUID } from 'node:crypto';
 import { createStore, defaults } from './store.mjs';
-import { snapshot, saveRecord, deleteRecord, approvePrdRevision, approveStandardRevision, approveDesignRevision, acceptProposal, invoiceUnbilledTime, invoiceRetainer } from './domain.mjs';
+import { snapshot, saveRecord, deleteRecord, approvePrdRevision, approveStandardRevision, approveDesignRevision, acceptProposal, submitForm, invoiceUnbilledTime, invoiceRetainer } from './domain.mjs';
 import { createActions } from './actions.mjs';
+import { saveProfile, defaultProfile } from './profile.mjs';
+import { importAdStats, adSummary, importSocialStats, socialSummary } from './ads-social.mjs';
 import { createAssistant } from './assistant.mjs';
 import { createOutlook } from './outlook.mjs';
 import { createMailSync } from './mail-sync.mjs';
@@ -168,6 +170,7 @@ export async function createApp(options={}) {
   app.post('/api/prds/:id/revisions',(req,res)=>res.json(approvePrdRevision(store,req.params.id,req.body||{})));
   app.post('/api/clients/:id/invoice-time',(req,res)=>res.json(invoiceUnbilledTime(store,req.params.id)));
   app.post('/api/retainers/:id/invoice',(req,res)=>res.json(invoiceRetainer(store,req.params.id,(req.body||{}).month||'')));
+  app.post('/api/forms/:id/responses',(req,res)=>res.json(submitForm(store,req.params.id,req.body||{},'You',{test:req.body?.test===true})));
   app.post('/api/proposals/:id/accept',(req,res)=>res.json(acceptProposal(store,req.params.id)));
   app.post('/api/designs/:id/revisions',(req,res)=>res.json(approveDesignRevision(store,req.params.id,req.body||{})));
   app.post('/api/records/:collection',(req,res)=>res.json(saveRecord(store,req.params.collection,req.body)));
@@ -181,6 +184,12 @@ export async function createApp(options={}) {
     if(req.body.publicBaseUrl){const url=new URL(req.body.publicBaseUrl);if(url.protocol!=='https:'||url.username||url.password||url.pathname!=='/'||url.search||url.hash)throw new Error('Use an HTTPS base URL without a path or credentials');req.body.publicBaseUrl=url.origin;}
     for(const[k,v]of Object.entries(req.body))store.setting(k,v);res.json({ok:true});
   });
+  app.post('/api/ads/:id/import',(req,res)=>res.json(importAdStats(store,req.params.id,req.body?.csv)));
+  app.get('/api/ads/:id/summary',(req,res)=>res.json(adSummary(store,req.params.id,Math.min(365,Math.max(1,Number(req.query.days)||28)))));
+  app.post('/api/social/:id/import',(req,res)=>res.json(importSocialStats(store,req.params.id,req.body?.csv)));
+  app.get('/api/social/:id/summary',(req,res)=>res.json(socialSummary(store,req.params.id,Math.min(365,Math.max(1,Number(req.query.days)||90)))));
+  app.get('/api/profile',(req,res)=>res.json(defaultProfile(store.settings())));
+  app.put('/api/profile',(req,res)=>res.json(saveProfile(store,req.body||{})));
   app.post('/api/chatgpt/authorize',async(req,res)=>res.json(await chatgpt.authorize()));
   app.get('/api/chatgpt/models',async(req,res)=>res.json(await chatgpt.models()));
   app.put('/api/chatgpt/model',async(req,res)=>{if(typeof req.body.model!=='string')throw new Error('Choose an available model');const models=await chatgpt.models();if(!models.some(m=>m.slug===req.body.model))throw new Error('Choose a model available to your account');store.setting('gptModel',req.body.model);res.json({ok:true});});

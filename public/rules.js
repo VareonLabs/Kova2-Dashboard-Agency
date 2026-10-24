@@ -15,6 +15,7 @@ export const TRIGGERS={
   'proposal.status':{label:'a proposal changes stage',collection:'proposals',event:'status'},
   'support.created':{label:'a support request is logged',collection:'supportRequests',event:'create'},
   'support.overdue':{label:'a support request becomes overdue',collection:'supportRequests',event:'overdue'},
+  'form.submitted':{label:'a form response arrives',collection:'formSubmissions',event:'create'},
   'consent.changed':{label:'a contact’s marketing consent changes',collection:'clientContacts',event:'status',statusField:'marketingConsent'}
 };
 // Most records keep their stage in `status`; deals and contacts use their own field.
@@ -30,6 +31,7 @@ export const FIELDS={
   deals:{toStatus:'new stage',fromStatus:'previous stage',value:'value',title:'name'},
   proposals:{toStatus:'new stage',fromStatus:'previous stage',title:'name'},
   supportRequests:{priority:'priority',channel:'came in by',title:'request'},
+  formSubmissions:{title:'form name'},
   clientContacts:{toStatus:'new consent',fromStatus:'previous consent',role:'role'}
 };
 export const OPS={is:'is',isNot:'is not',contains:'contains',greater:'is greater than'};

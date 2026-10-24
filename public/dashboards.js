@@ -50,7 +50,7 @@ export function createDashboardsUI(ctx){
   }
 
   function editor(dash){
-    return `<div class="dash-edit">${GROUPS.map(g=>`<fieldset><legend>${esc(g)}</legend>${METRICS.filter(m=>m.group===g).map(m=>`<label class="check"><input type="checkbox" data-dash-metric="${m.key}" ${dash.widgets.includes(m.key)?'checked':''}> ${esc(m.label)}</label>`).join('')}</fieldset>`).join('')}<div class="dash-edit-actions"><input id="dash-name" aria-label="Dashboard name" value="${esc(dash.name)}" maxlength="80"><button type="button" class="btn small" id="dash-rename">Rename</button>${dash.id?'<button type="button" class="btn small danger" id="dash-delete">Delete dashboard</button>':''}</div></div>`;
+    return `<div class="dash-edit">${GROUPS.map(g=>`<fieldset><legend>${esc(g)}</legend>${METRICS.filter(m=>m.group===g).map(m=>`<label class="tick"><input type="checkbox" data-dash-metric="${m.key}" ${dash.widgets.includes(m.key)?'checked':''}> ${esc(m.label)}</label>`).join('')}</fieldset>`).join('')}<div class="dash-edit-actions"><input id="dash-name" aria-label="Dashboard name" value="${esc(dash.name)}" maxlength="80"><button type="button" class="btn small" id="dash-rename">Rename</button>${dash.id?'<button type="button" class="btn small danger" id="dash-delete">Delete dashboard</button>':''}</div></div>`;
   }
 
   function render(){

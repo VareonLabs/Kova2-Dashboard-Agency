@@ -5,6 +5,9 @@ import { scopeOf, diffScopes, standardOf, diffStandards } from '../public/requir
 import { TRIGGERS, FIELDS, OPS, ACTIONS } from '../public/rules.js';
 import { fireRules, validateRule } from './rules.mjs';
 import { METRIC_KEYS } from '../public/dashboards.js';
+import { FIELD_TYPES, LEAD_MAP, checkAnswers, leadFrom } from '../public/forms.js';
+import { ENGINES, RESULTS } from '../public/seo.js';
+import { removeAccountStats } from './ads-social.mjs';
 import { ALL_STATUSES, EVIDENCE_KINDS, OWNER_ONLY_PASSES, gateProblems, isSoftware, statusesFor } from '../public/workflow.js';
 
 const text = z.string().trim().max(20000);
@@ -33,6 +36,11 @@ export const schemas = {
   deals:z.object({title:name,clientId:ref,prospectId:ref,value:money.default(0),stage:z.enum(['Qualified','Proposal sent','Negotiation','Won','Lost']).default('Qualified'),expectedClose:date,proposalId:ref,lostReason:z.string().trim().max(500).optional().default(''),closedAt:z.string().max(40).optional().default(''),notes:optional}),
   clientContacts:z.object({name,email:z.union([z.literal(''),z.email()]).optional().default(''),phone:optional,role:z.string().trim().max(120).optional().default(''),clientId:ref,prospectId:ref,primary:z.boolean().default(false),marketingConsent:z.enum(['Unknown','Opted in','Opted out']).default('Unknown'),consentDate:z.string().max(40).optional().default(''),consentSource:z.string().trim().max(300).optional().default(''),notes:optional}),
   dashboards:z.object({name,widgets:z.array(z.string()).max(30).default([]).refine(w=>w.every(k=>METRIC_KEYS.includes(k))&&new Set(w).size===w.length,'Choose each figure from the list, once.')}),
+  forms:z.object({name,description:optional,status:z.enum(['Draft','Live','Closed']).default('Draft'),clientId:ref,fields:z.array(z.object({id:z.string().regex(/^[a-z0-9_]{1,40}$/,'Field ids use lowercase letters, numbers and underscores'),label:z.string().trim().min(1,'Give every field a label').max(120),type:z.enum(Object.keys(FIELD_TYPES)).default('text'),required:z.boolean().default(false),options:z.array(z.string().trim().min(1).max(120)).max(30).default([]),help:z.string().trim().max(200).optional().default('')})).max(40).default([]),submitLabel:z.string().trim().max(40).default('Send'),thanks:z.string().trim().max(500).default('Thank you. We have your response.'),consentText:z.string().trim().max(300).default(''),createLead:z.boolean().default(false),leadMap:z.partialRecord(z.enum(LEAD_MAP),z.string().max(40)).default({})}).superRefine((f,ctx)=>{const ids=f.fields.map(x=>x.id);if(new Set(ids).size!==ids.length)ctx.addIssue({code:'custom',message:'Two fields share an id.'});for(const x of f.fields)if(x.type==='select'&&!x.options.length)ctx.addIssue({code:'custom',message:`“${x.label}” needs at least one option.`});for(const [k,id] of Object.entries(f.leadMap))if(id&&!ids.includes(id))ctx.addIssue({code:'custom',message:`The lead ${k} points at a field that does not exist.`});if(f.createLead&&!f.leadMap.name)ctx.addIssue({code:'custom',message:'Choose which field holds the lead’s name.'});}),
+  formSubmissions:z.object({formId:z.string().min(1).max(100),title:name,answers:z.record(z.string(),z.union([z.string(),z.boolean()])).default({}),fieldLabels:z.record(z.string(),z.string()).default({}),consent:z.boolean().default(false),consentText:z.string().max(300).default(''),prospectId:ref,handled:z.boolean().default(false)}),
+  answerChecks:z.object({websiteId:z.string().min(1,'Choose a website').max(100),prompt:z.string().trim().min(1,'Write the question you asked').max(500),engine:z.enum(ENGINES).default('ChatGPT'),checkedOn:z.string().refine(realDay,'Choose the date you checked'),result:z.enum(RESULTS).default('Not mentioned'),competitors:z.string().trim().max(300).optional().default(''),notes:optional}),
+  adAccounts:z.object({platform:z.enum(['Google Ads','Meta Ads']),name,accountId:z.string().trim().max(40).refine(v=>!v||/^(act_)?[0-9][0-9-]{3,}$/.test(v),'Use the account number, such as 123-456-7890 or act_1234567890').optional().default(''),clientId:ref,currency:z.enum(['AUD','USD']).default('AUD'),status:z.enum(['Not connected','Connected','Needs attention']).default('Not connected'),notes:optional}),
+  socialAccounts:z.object({platform:z.enum(['Facebook','Instagram','LinkedIn','X','TikTok','YouTube']),name,handle:z.string().trim().max(100).optional().default(''),url:web,clientId:ref,status:z.enum(['Not connected','Connected','Needs attention']).default('Not connected'),notes:optional}),
   services:z.object({name,description:optional,billing:z.enum(['One-off','Monthly']).default('One-off'),unit:z.string().trim().max(40).default('project'),unitPrice:money.default(0),active:z.boolean().default(true)}),
   proposals:z.object({title:name,clientId:z.string().min(1,'Choose a client').max(100),projectId:ref,status:z.enum(['Draft','Sent','Accepted','Declined','Expired']).default('Draft'),validUntil:date,lineItems:z.array(z.object({serviceId:ref,description:z.string().trim().min(1,'Describe each line').max(500),quantity:z.coerce.number().min(0.01).max(100000).default(1),unitPrice:money})).max(60).default([]),notes:optional,contractId:ref,depositPercent:z.coerce.number().min(0).max(100).default(0),acceptedAt:z.string().max(40).optional().default('')}),
   variations:z.object({proposalId:z.string().min(1).max(100),title:name,amountChange:z.coerce.number().finite().min(-1e9).max(1e9).refine(v=>Math.abs(v*100-Math.round(v*100))<0.0001,'Use at most two decimal places'),reason:optional,status:z.enum(['Proposed','Approved','Rejected']).default('Proposed')}),
@@ -126,6 +134,17 @@ export function saveRecord(store, collection, input, id, actor='You',options={})
     }
     if(data.marketingConsent==='Unknown'){data.consentDate='';}
     if(data.primary&&!data.clientId)throw new Error('Only a client contact can be the primary contact.');
+  }
+  if(collection==='forms'){
+    if(data.clientId&&!store.get('clients',data.clientId))throw new Error('Choose an existing client for this form.');
+    if(data.status==='Live'&&!data.fields.length)throw new Error('Add at least one field before making the form live.');
+  }
+  if(collection==='formSubmissions'&&!options.formResponse&&!id)throw new Error('Responses come from filling in a form.');
+  if(collection==='formSubmissions'&&id&&JSON.stringify(previous.answers)!==JSON.stringify(data.answers))throw new Error('A response cannot be edited. Mark it handled instead.');
+  if(collection==='answerChecks'&&!store.get('websites',data.websiteId))throw new Error('Choose an existing website for this check.');
+  if(['adAccounts','socialAccounts'].includes(collection)){
+    if(data.clientId&&!store.get('clients',data.clientId))throw new Error('Choose an existing client for this account.');
+    if(data.status==='Connected'&&previous.status!=='Connected')throw new Error('An account becomes Connected only when its sign-in succeeds. Connections are not set up yet.');
   }
   if(collection==='proposals'){
     if(!store.get('clients',data.clientId))throw new Error('Choose an existing client for this proposal.');
@@ -330,6 +349,8 @@ export function deleteRecord(store,collection,id,actor='You',options={}) {
   if(collection==='services'&&store.list('proposals').some(p=>(p.lineItems||[]).some(l=>l.serviceId===id)))throw new Error('This service is used in a proposal. Mark it inactive instead.');
   if(collection==='proposals'){const p=store.get('proposals',id);if(p?.status==='Accepted')throw new Error('Accepted proposals are part of the project history and cannot be deleted.');}
   if(collection==='clients'&&(store.list('clientAssets').some(a=>a.clientId===id)||store.list('supportRequests').some(r=>r.clientId===id)))throw new Error('This client has assets or support requests. Update or remove those first.');
+  if(['adAccounts','socialAccounts'].includes(collection))removeAccountStats(store,collection,id);
+  if(collection==='forms'&&store.list('formSubmissions').some(r=>r.formId===id))throw new Error('This form has responses. Close it instead of deleting it.');
   if(collection==='clients'&&store.list('clientContacts').some(c=>c.clientId===id))throw new Error('This client has contacts. Update or remove those first.');
   if(collection==='clients'&&store.list('deals').some(d=>d.clientId===id))throw new Error('This client has deals. Update or remove those first.');
   if(collection==='clients'&&store.list('proposals').some(p=>p.clientId===id))throw new Error('This client has proposals. Update or remove those first.');
@@ -461,6 +482,25 @@ export function invoiceRetainer(store,retainerId,month='',actor='You'){
   store.log(`Raised draft retainer invoice for ${monthLabel(month)}`,actor,retainerId);
   return {invoice,retainer:saved};
 }
+// One response to a live form. The form's field labels are copied in so old responses stay readable if the form changes.
+export function submitForm(store,formId,raw,actor='You',{test=false}={}){
+  const form=store.get('forms',formId);
+  if(!form)throw new Error('Form not found.');
+  if(!test&&form.status!=='Live')throw new Error('This form is not taking responses. Make it live first.');
+  const {answers,errors}=checkAnswers(form.fields,raw.answers||{});
+  if(errors.length)throw new Error(errors[0]);
+  const consent=Boolean(form.consentText&&raw.consent===true);
+  if(test)return {test:true,answers,consent};
+  let prospectId='';
+  if(form.createLead){
+    const lead=leadFrom(form,answers);
+    if(lead.name){
+      const prospect=saveRecord(store,'prospects',{name:lead.name,company:lead.company,email:lead.email,phone:lead.phone,source:`Form: ${form.name}`,notes:[lead.notes,consent?`Agreed to marketing email: “${form.consentText}”`:''].filter(Boolean).join('\n')},undefined,actor);
+      prospectId=prospect.id;
+    }
+  }
+  return saveRecord(store,'formSubmissions',{formId,title:form.name,answers,fieldLabels:Object.fromEntries(form.fields.map(f=>[f.id,f.label])),consent,consentText:consent?form.consentText:'',prospectId},undefined,actor,{formResponse:true});
+}
 export const canMarket=contact=>contact.marketingConsent==='Opted in';
 export const proposalTotal=(proposal)=>Math.round((proposal.lineItems||[]).reduce((n,l)=>n+Math.round(l.quantity*l.unitPrice*100),0))/100;
 export function proposalValue(store,proposal){
@@ -483,5 +523,5 @@ export function acceptProposal(store,proposalId,actor='You'){
   return {proposal:accepted,contract};
 }
 export function snapshot(store,limit=1000) {
-  return Object.fromEntries(['clients','projects','designs','designRevisions','services','proposals','variations','retainers','people','deals','clientContacts','dashboards','clientAssets','supportRequests','tasks','contracts','posts','emails','notes','automations','runs','approvals','messages','conversations','chatScopes','activity','codexJobs','media','prospects','prospectTouches','invoices','payments','expenses','resources','documents','renewals','timeEntries','meetingNotes','onboardings','contacts','mailFolders','previews','websites','meetings','forecastItems','reportSchedules','onboardingTemplates','onboardings','renewals','timeEntries','meetingNotes','meetingProposals','timeTimers','ticketComments','savedViews','listViews','requirements','prdRevisions','projectStandards','standardRevisions','standardExceptions','ticketEvidence','repositories','ticketLinks','environments','releases','deliveryRuns','deliveryPlans','projectTemplates','templateVersions','handoffs','automationRules','automationRuns','automationAlerts'].map(c=>[c,store.list(c).slice(0,c==='activity'?100:limit)]));
+  return Object.fromEntries(['clients','projects','designs','designRevisions','services','proposals','variations','retainers','people','forms','formSubmissions','answerChecks','adAccounts','socialAccounts','deals','clientContacts','dashboards','clientAssets','supportRequests','tasks','contracts','posts','emails','notes','automations','runs','approvals','messages','conversations','chatScopes','activity','codexJobs','media','prospects','prospectTouches','invoices','payments','expenses','resources','documents','renewals','timeEntries','meetingNotes','onboardings','contacts','mailFolders','previews','websites','meetings','forecastItems','reportSchedules','onboardingTemplates','onboardings','renewals','timeEntries','meetingNotes','meetingProposals','timeTimers','ticketComments','savedViews','listViews','requirements','prdRevisions','projectStandards','standardRevisions','standardExceptions','ticketEvidence','repositories','ticketLinks','environments','releases','deliveryRuns','deliveryPlans','projectTemplates','templateVersions','handoffs','automationRules','automationRuns','automationAlerts'].map(c=>[c,store.list(c).slice(0,c==='activity'?100:limit)]));
 }

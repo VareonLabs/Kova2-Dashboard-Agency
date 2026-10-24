@@ -55,6 +55,46 @@ export function analysePage(page){
   check('aeo','identity','Contact or company information link',facts.links.some(link=>/contact|about|mailto:|tel:/i.test(link)),'Checks link destinations for contact, about, mailto or tel. This does not verify company claims.','Make company identity and contact information easy to find.',20);
   check('aeo','topic','Visible page topic',!!facts.title&&facts.h1.some(Boolean),`${facts.title||'No title'} · ${facts.h1.join(' · ')||'No H1'}`,'Use a title and main heading that make the page topic clear.',20);
   const scores=Object.fromEntries(['seo','aeo'].map(group=>{const list=checks.filter(c=>c.group===group);return[group,Math.round(100*list.filter(c=>c.passed).reduce((n,c)=>n+c.weight,0)/list.reduce((n,c)=>n+c.weight,0))];}));
-  return {url:page.url,status:page.status,title:facts.title,checks,scores,structuredData:{blocks:facts.structuredData.length,invalid:facts.structuredData.filter(s=>s.invalid).length},methodology:'VareonHQ homepage audit v1. Checks initial HTML only, one URL. Equal weights within each group. AEO is a custom answer-readiness checklist, not measured AI visibility or a Google score. Robots.txt, rendering, sitewide quality, factual accuracy, rankings and performance are not evaluated. Passing does not guarantee indexing, rankings or AI citations.'};
+  const types=new Set();const walk=n=>{if(Array.isArray(n))return n.forEach(walk);if(n&&typeof n==='object'){const t=n['@type'];(Array.isArray(t)?t:t?[t]:[]).forEach(x=>types.add(String(x)));Object.values(n).forEach(walk);}};facts.structuredData.forEach(walk);
+  return {url:page.url,status:page.status,title:facts.title,checks,scores,structuredTypes:[...types].slice(0,40),questionHeadings:facts.headings.filter(h=>/\?\s*$/.test(h)).length,structuredData:{blocks:facts.structuredData.length,invalid:facts.structuredData.filter(s=>s.invalid).length},methodology:'VareonHQ homepage audit v1. Checks initial HTML only, one URL. Equal weights within each group. AEO is a custom answer-readiness checklist, not measured AI visibility or a Google score. Robots.txt, rendering, sitewide quality, factual accuracy, rankings and performance are not evaluated. Passing does not guarantee indexing, rankings or AI citations.'};
 }
-export async function auditWebsite(site,deps={}){return {...analysePage(await (deps.fetchPage||fetchPublicPage)(site.url)),websiteId:site.id,auditedAt:new Date().toISOString()};}
+// Crawlers behind AI assistants and AI search. A site that blocks them cannot be quoted by them.
+export const AI_CRAWLERS=['GPTBot','OAI-SearchBot','ChatGPT-User','ClaudeBot','anthropic-ai','PerplexityBot','Google-Extended','CCBot'];
+export function blockedCrawlers(robotsTxt){
+  const groups=[];let current=null,lastWasAgent=false;
+  for(const raw of String(robotsTxt||'').split(/\r?\n/)){
+    const line=raw.replace(/#.*/,'').trim();if(!line)continue;
+    const [k,...rest]=line.split(':'),key=k.trim().toLowerCase(),value=rest.join(':').trim();
+    if(key==='user-agent'){if(!current||!lastWasAgent){current={agents:[],disallow:[],allow:[]};groups.push(current);}current.agents.push(value.toLowerCase());lastWasAgent=true;}
+    else{lastWasAgent=false;if(current&&key==='disallow')current.disallow.push(value);if(current&&key==='allow')current.allow.push(value);}
+  }
+  const fullyBlocked=g=>g.disallow.includes('/')&&!g.allow.some(a=>a==='/'||a==='');
+  const star=groups.find(g=>g.agents.includes('*'));
+  return AI_CRAWLERS.filter(bot=>{const own=groups.find(g=>g.agents.includes(bot.toLowerCase()));return own?fullyBlocked(own):star?fullyBlocked(star):false;});
+}
+// Checks beyond the homepage HTML: the site's own files, and what its structured data says it is.
+export function analyseSignals({robots,sitemap,llms,structuredTypes=[],questionHeadings=0}){
+  const checks=[];const check=(key,label,passed,evidence,advice,weight=20)=>checks.push({group:'ai',key,label,passed,evidence,advice,weight});
+  const present=f=>Boolean(f&&f.status===200&&String(f.html||'').trim().length>0&&!/<html[\s>]/i.test(f.html));
+  const blocked=present(robots)?blockedCrawlers(robots.html):[];
+  check('robots','robots.txt file',present(robots),present(robots)?'robots.txt found.':'No robots.txt found.','Add a robots.txt so crawlers know what they may read.',10);
+  check('crawlers','AI crawlers allowed',!blocked.length,blocked.length?`Blocked: ${blocked.join(', ')}.`:present(robots)?'None of the main AI crawlers are blocked.':'No robots.txt, so nothing is blocked.','Unblock these crawlers in robots.txt if you want AI assistants to be able to read and quote the site.',25);
+  const sitemapOk=f=>Boolean(f&&f.status===200&&/<(urlset|sitemapindex)[\s>]/i.test(f.html||''));
+  const listed=present(robots)&&/^\s*sitemap\s*:/im.test(robots.html);
+  check('sitemap','Sitemap',sitemapOk(sitemap)||listed,sitemapOk(sitemap)?'sitemap.xml found.':listed?'A sitemap is listed in robots.txt.':'No sitemap found at /sitemap.xml or in robots.txt.','Publish a sitemap so every important page is discoverable.',20);
+  const org=structuredTypes.some(t=>/^(Organization|LocalBusiness|ProfessionalService|Corporation|WebSite|Person|Store)$/i.test(t)||/Business$/.test(t));
+  check('identity','Organisation structured data',org,structuredTypes.length?`Found: ${structuredTypes.slice(0,8).join(', ')}.`:'No structured data found.','Add JSON-LD describing the business (Organization or LocalBusiness) so assistants can state who it is and how to reach it.',20);
+  const faq=structuredTypes.includes('FAQPage')||questionHeadings>=2;
+  check('faq','Question-and-answer content',faq,structuredTypes.includes('FAQPage')?'FAQPage structured data found.':`${questionHeadings} headings phrased as questions.`,'Answer real customer questions under question headings, ideally with FAQPage structured data.',20);
+  check('llms','llms.txt file',present(llms),present(llms)?'llms.txt found.':'No llms.txt found.','Optional. A plain-text summary of the site for AI tools. It is an emerging convention, not a ranking factor.',5);
+  const score=Math.round(100*checks.filter(c=>c.passed).reduce((n,c)=>n+c.weight,0)/checks.reduce((n,c)=>n+c.weight,0));
+  return {checks,score};
+}
+export async function auditWebsite(site,deps={}){
+  const fetchPage=deps.fetchPage||fetchPublicPage,page=await fetchPage(site.url),base=analysePage(page);
+  const origin=new URL(page.url).origin;
+  const get=async path=>{try{return await fetchPage(origin+path);}catch{return null;}};
+  const [robots,sitemap,llms]=await Promise.all([get('/robots.txt'),get('/sitemap.xml'),get('/llms.txt')]);
+  const signals=analyseSignals({robots,sitemap,llms,structuredTypes:base.structuredTypes,questionHeadings:base.questionHeadings});
+  return {...base,signals,websiteId:site.id,auditedAt:new Date().toISOString()};
+}

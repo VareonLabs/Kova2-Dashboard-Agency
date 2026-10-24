@@ -14,7 +14,8 @@ const open=t=>!['Done','Cancelled'].includes(t.status);
 function context(store,collection,record,previous){
   const task=collection==='tasks'?record:collection==='ticketEvidence'?store.get('tasks',record.taskId):null;
   const projectId=collection==='projects'?record.id:record.projectId||task?.projectId||'',project=projectId?store.get('projects',projectId):null;
-  const clientId=record.clientId||project?.clientId||'',client=clientId?store.get('clients',clientId):null;
+  const form=collection==='formSubmissions'?store.get('forms',record.formId):null;
+  const clientId=record.clientId||project?.clientId||form?.clientId||'',client=clientId?store.get('clients',clientId):null;
   return {task,projectId,clientId,vars:{title:record.title||record.name||'',name:record.name||record.title||'',key:task?.ticketKey||'',status:record[statusField(collection)]||'',project:project?.name||'',client:client?.name||'',company:record.company||''},fields:{...record,toStatus:record[statusField(collection)]||'',fromStatus:previous?.[statusField(collection)]||''}};
 }
 function matches(rule,fields){

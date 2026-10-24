@@ -3,7 +3,7 @@ import { mkdirSync, chmodSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 
-const tracked=new Set(['clients','projects','designs','designRevisions','services','proposals','variations','retainers','people','deals','clientContacts','dashboards','clientAssets','supportRequests','listViews','tasks','ticketComments','requirements','projectStandards','standardExceptions','repositories','environments','releases','projectTemplates','contracts','posts','notes','invoices','payments','expenses','resources','documents','onboardingTemplates','onboardings','renewals','timeEntries','meetingNotes','websites','prospects','automations','meetings','forecastItems','reportSchedules','forecastSettings','workloadSettings']);
+const tracked=new Set(['clients','projects','designs','designRevisions','services','proposals','variations','retainers','people','forms','formSubmissions','answerChecks','adAccounts','socialAccounts','deals','clientContacts','dashboards','clientAssets','supportRequests','listViews','tasks','ticketComments','requirements','projectStandards','standardExceptions','repositories','environments','releases','projectTemplates','contracts','posts','notes','invoices','payments','expenses','resources','documents','onboardingTemplates','onboardings','renewals','timeEntries','meetingNotes','websites','prospects','automations','meetings','forecastItems','reportSchedules','forecastSettings','workloadSettings']);
 export const collections = ['clients', 'projects', 'tasks', 'contracts', 'posts', 'emails', 'automations', 'runs', 'approvals', 'messages', 'activity', 'codexJobs'];
 export function createStore(directory) {
   mkdirSync(directory, { recursive: true, mode: 0o700 });
