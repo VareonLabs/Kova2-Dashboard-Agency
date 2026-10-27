@@ -62,7 +62,7 @@ body .composer :is(.composer-add,.composer-shortcut,.voice-button){color:var(--n
 body .count{color:#46515e;background:#e9edf2}
 body .overview-metrics .metric .metric-value,body .cashflow-summary strong,body .cashflow-total strong,body .task-breakdown strong,body .overview-panel strong{color:var(--n-ink)}
 body .task-ring>div{background:#f5f6f8;color:var(--n-ink)}
-body .metric-value{font-size:28px;overflow-wrap:normal;word-break:normal}
+body .metric-value{font-size:20px;overflow-wrap:normal;word-break:normal}
 body .metric-symbol{background:#edf1e5;color:#526626}
 body .kanban-card h3{color:var(--n-ink)}
 body .kanban-meta,body .column-add{color:var(--n-muted)}

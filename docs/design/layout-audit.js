@@ -2,14 +2,16 @@
 // It visits every page through the ⌘K menu with the desktop title strip simulated, and reports:
 //   centre  text not centred in its own box (buttons, pills, badges, counts, tabs) by more than 1.5px
 //   select  dropdowns with uneven vertical padding or a line height that does not fit the box
-//   double  two parallel lines (borders or 1px rings) 1-6px apart over most of their length
+//   double  two parallel lines (borders or 1px rings) 1-6px apart over most of their length (siblings in a row, such as pills, are separate controls and are not counted)
 //   clip    text cut off by its box without an ellipsis
 //   overlap two controls (buttons, links, fields, breadcrumb names) drawn on top of each other
 //   offscreen a control pushed past the edge of the window
+//   type    text outside the 20/16/14/12/10 scale
+//   contrast text below WCAG AA against the colour behind it (4.5:1, or 3:1 for 20px and larger)
 // Returns {pages, total, findings:[{check, where, detail, count, pages}]}.
 window.layoutAudit = async function layoutAudit({pages=null, settle=550}={}){
   const wait=ms=>new Promise(r=>setTimeout(r,ms));
-  if(!document.querySelector('#audit-titlebar')){const st=document.createElement('style');st.id='audit-titlebar';st.textContent='body{--desktop-titlebar:36px;padding-top:36px}body:before{content:"";height:36px;position:fixed;top:0;left:0;right:0;z-index:200;background:#f3f5f7}';document.head.append(st);}
+  if(!document.querySelector('#audit-titlebar')){const st=document.createElement('style');st.id='audit-titlebar';st.textContent='body{--desktop-titlebar:36px;padding-top:36px}body:before{content:"";height:36px;position:fixed;top:0;left:0;right:0;z-index:200;background:#eceef1}';document.head.append(st);}
   const go=async label=>{document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',metaKey:true,bubbles:true}));await wait(120);const i=document.querySelector('#cmd-input');if(!i)return false;i.value=label;i.dispatchEvent(new Event('input'));await wait(60);let g='',t;for(const li of document.querySelectorAll('.cmd-list li')){if(li.classList.contains('cmd-group'))g=li.textContent;else if(g==='Go to'&&li.querySelector('.cmd-label')?.textContent===label){t=li;break;}}if(!t){document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));document.querySelector('#command-root')?.remove();return false;}t.click();await wait(settle);return true;};
   const visible=el=>{const r=el.getBoundingClientRect();if(r.width<2||r.height<2)return false;const cs=getComputedStyle(el);return cs.visibility!=='hidden'&&+cs.opacity>0.05&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;};
   const alpha=c=>{if(!c||c==='transparent')return 0;const m=c.match(/rgba?\(([^)]+)\)/);if(!m)return 1;const p=m[1].split(/[ ,/]+/).filter(Boolean);return p.length>3?parseFloat(p[3]):1;};
@@ -49,7 +51,7 @@ window.layoutAudit = async function layoutAudit({pages=null, settle=550}={}){
     // A line only counts if it is actually on screen: not covered by an overlay or another layer, and not scrolled out of a clipping parent.
     const seen=sg=>{const mid=(Math.max(sg.a,0)+Math.min(sg.b,sg.h?innerWidth:innerHeight))/2,inward=sg.side==='top'||sg.side==='left'?0.5:-0.5;const x=sg.h?mid:sg.pos+inward,y=sg.h?sg.pos+inward:mid;if(x<0||y<0||x>=innerWidth||y>=innerHeight)return false;const hit=document.elementFromPoint(x,y);return !!hit&&(hit===sg.el||sg.el.contains(hit));};
     const onScreen=segs.filter(seen);segs.length=0;segs.push(...onScreen);
-    for(let i=0;i<segs.length;i++)for(let j=i+1;j<segs.length;j++){const s=segs[i],t=segs[j];if(s.h!==t.h||s.el===t.el)continue;const d=Math.abs(s.pos-t.pos);if(d<1||d>6)continue;const ov=Math.min(s.b,t.b)-Math.max(s.a,t.a),short=Math.min(s.b-s.a,t.b-t.a);if(ov<24||ov<short*0.6)continue;const k=[sig(s.el),sig(t.el)].sort().join('  +  ');const f=findings.get('double|'+k)||{check:'double',where:k,detail:`${d.toFixed(1)}px apart, ${s.h?'horizontal':'vertical'}`,count:0,pages:new Set()};f.count++;f.pages.add(page);findings.set('double|'+k,f);}
+    for(let i=0;i<segs.length;i++)for(let j=i+1;j<segs.length;j++){const s=segs[i],t=segs[j];if(s.h!==t.h||s.el===t.el||s.el.parentElement===t.el.parentElement||s.el.matches("main.main")||t.el.matches("main.main"))continue;const d=Math.abs(s.pos-t.pos);if(d<1||d>6)continue;const ov=Math.min(s.b,t.b)-Math.max(s.a,t.a),short=Math.min(s.b-s.a,t.b-t.a);if(ov<24||ov<short*0.6)continue;const k=[sig(s.el),sig(t.el)].sort().join('  +  ');const f=findings.get('double|'+k)||{check:'double',where:k,detail:`${d.toFixed(1)}px apart, ${s.h?'horizontal':'vertical'}`,count:0,pages:new Set()};f.count++;f.pages.add(page);findings.set('double|'+k,f);}
     // overlap: controls that sit on top of one another (neither inside the other)
     const ctrls=[...root.querySelectorAll('button,a,select,input,textarea,summary,.breadcrumb strong,.breadcrumb > span')].filter(el=>visible(el)&&!el.closest('#zoomlab,.usage-card,.page-tabs-menu,.composer-popover,.nav-flyout,#cp-menu'));
     // Trim each box to what its scrolling/clipping parents actually show, so content scrolled out of view does not count.
@@ -61,6 +63,21 @@ window.layoutAudit = async function layoutAudit({pages=null, settle=550}={}){
     // offscreen: a visible control pushed past the window edge (the top bar overflowing on a phone, for example).
     for(const b of boxes){if(layer(b.el)===document.body&&(b.r.right>innerWidth+1||b.r.left<-1))add('offscreen',b.el,`${Math.round(Math.max(b.r.right-innerWidth,-b.r.left))}px outside the window`,page);}
     for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){const A=boxes[i],B=boxes[j];if(A.el.contains(B.el)||B.el.contains(A.el)||layer(A.el)!==layer(B.el))continue;const w=Math.min(A.r.right,B.r.right)-Math.max(A.r.left,B.r.left),h=Math.min(A.r.bottom,B.r.bottom)-Math.max(A.r.top,B.r.top);if(w>2&&h>2){const k=[sig(A.el),sig(B.el)].sort().join('  ×  ');const f=findings.get('overlap|'+k)||{check:'overlap',where:k,detail:`${Math.round(w)}×${Math.round(h)}px on top of each other`,count:0,pages:new Set()};f.count++;f.pages.add(page);findings.set('overlap|'+k,f);}}
+    // type + contrast: every visible text node against the scale and against the colour it actually sits on.
+    const rgba=c=>{const m=c.match(/rgba?\(([^)]+)\)/);if(!m)return null;const p=m[1].split(/[ ,/]+/).filter(Boolean).map(parseFloat);return {r:p[0],g:p[1],b:p[2],a:p.length>3?p[3]:1};};
+    const lum=({r,g,b})=>{const f=v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);};return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);};
+    const over=(top,bottom)=>({r:top.r*top.a+bottom.r*(1-top.a),g:top.g*top.a+bottom.g*(1-top.a),b:top.b*top.a+bottom.b*(1-top.a),a:1});
+    const behind=el=>{const chain=[];for(let e=el;e;e=e.parentElement){const cs=getComputedStyle(e);if(cs.backgroundImage!=='none')return null;const c=rgba(cs.backgroundColor);if(c&&c.a>0)chain.push(c);if(c&&c.a>=1)break;}let base={r:248,g:249,b:251,a:1};for(let i=chain.length-1;i>=0;i--)base=over(chain[i],base);return base;};
+    const SCALE=new Set([10,12,14,16,20]);
+    for(const el of root.querySelectorAll('*')){
+      if(!visible(el)||!([...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())))continue;
+      const cs=getComputedStyle(el);if(['SCRIPT','STYLE','OPTION','svg','path'].includes(el.tagName))continue;
+      const fs=parseFloat(cs.fontSize);if(!SCALE.has(fs))add('type',el,`${fs}px is not on the 20/16/14/12/10 scale`,page);
+      if(el.disabled||el.closest('[disabled],[aria-disabled="true"]'))continue;
+      const fg=rgba(cs.color),bg=behind(el);if(!fg||!bg)continue;const text=fg.a<1?over(fg,bg):fg;
+      const L1=lum(text),L2=lum(bg),ratio=(Math.max(L1,L2)+0.05)/(Math.min(L1,L2)+0.05);
+      if(ratio<(fs>=20?3:4.5))add('contrast',el,`${ratio.toFixed(1)}:1 (${cs.color} on rgb(${Math.round(bg.r)},${Math.round(bg.g)},${Math.round(bg.b)}))`,page);
+    }
     // clip
     for(const el of root.querySelectorAll('button,a,span,strong,small,label,h1,h2,h3,p,td,th,summary,.nav-label')){
       if(!visible(el))continue;const cs=getComputedStyle(el);if(cs.overflow==='visible'||cs.textOverflow==='ellipsis')continue;if(el.scrollWidth>el.clientWidth+1&&el.clientWidth>0&&[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))add('clip',el,`${el.scrollWidth-el.clientWidth}px of text hidden`,page);

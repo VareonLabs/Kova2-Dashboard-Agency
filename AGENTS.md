@@ -56,7 +56,7 @@ Run the validation the task requests. When it does not establish the behavior yo
 
 ## VareonHQ design preferences
 
-The owner now requires a flat light neutral theme (24 Oct 2026): cool light-grey canvas, white surfaces separated by thin borders, charcoal text. No neumorphism: no paired light/dark shadows and no inset wells. Use official VareonHQ lime (#C6F432) sparingly for primary actions; use dark readable text on light surfaces. This supersedes the previous dark-theme preference. No purple. Never reuse the rejected sage, olive or cream palette. Official bright lime is explicitly approved. Use the official VareonHQ logo, not an invented mark.
+The owner now requires the Linear arrangement in a light theme (27 Oct 2026; a charcoal version was tried and rejected, the owner prefers light): the whole screen is one light colour (`--n-screen` #eceef1) and only the main content card is slightly lighter (`--n-base` #f8f9fb), rounded, with the only border, at low opacity. The sidebar and assistant sit on the screen colour with no borders or fills; panels inside the card are white with no outline. Type scale is fixed: H1 20px, H2 16px, H3 14px, H4 12px, H5 10px; nothing else. Official VareonHQ lime (#C6F432) is for primary actions and the active item; dark text on lime. No purple, no sage/olive/cream. Use the official VareonHQ logo. Check with `docs/design/layout-audit.js` (it also checks type scale and WCAG AA contrast). Edit `docs/design/system-source.css`, then run `node docs/design/compile-system-css.mjs`.
 
 ## Desktop runtime and business data
 
