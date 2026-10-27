@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {fetchOwnerCookie} from './owner-session.mjs';
 import assert from 'node:assert/strict';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -52,7 +53,7 @@ test('Assistant can read Today, open client workspaces and submit reviews but ca
 });
 test('Local HTTP endpoints expose client and daily read models and apply reviewed changes only through the owner route',async t=>{
  const directory=mkdtempSync(join(tmpdir(),'vareon-operations-http-'));const runtime=await createApp({directory,port:4448,noScheduler:true});const server=runtime.app.listen(4448,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(async()=>{await new Promise(r=>server.close(r));runtime.close();rmSync(directory,{recursive:true,force:true});});
- const base='http://127.0.0.1:4448';const home=await fetch(base),cookie=home.headers.get('set-cookie').split(';')[0];const req=(path,body)=>fetch(base+'/api'+path,{method:body?'POST':'GET',headers:{Cookie:cookie,'Content-Type':'application/json','X-Vareon-Local':'1'},...(body?{body:JSON.stringify(body)}:{})});
+ const base='http://127.0.0.1:4448';const home=await fetch(base),cookie=await fetchOwnerCookie(base,home.headers.get('set-cookie').split(';')[0]);const req=(path,body)=>fetch(base+'/api'+path,{method:body?'POST':'GET',headers:{Cookie:cookie,'Content-Type':'application/json','X-Vareon-Local':'1'},...(body?{body:JSON.stringify(body)}:{})});
  const client=await (await req('/records/clients',{name:'HTTP client'})).json();assert.equal((await req('/clients/'+client.id+'/workspace')).status,200);assert.equal((await req('/today')).status,200);
  const approval=await(await req('/reviews',{collection:'projects',record:{name:'Awaiting approval',clientId:client.id}})).json();assert.equal(runtime.store.list('projects').length,0);assert.equal((await req('/approvals/'+approval.id,{approve:true})).status,200);assert.equal(runtime.store.list('projects').length,1);assert.equal((await req('/approvals/'+approval.id,{approve:true})).status,400);
  const outsider=await fetch(base+'/api/approvals/'+approval.id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approve:true})});assert.equal(outsider.status,403);

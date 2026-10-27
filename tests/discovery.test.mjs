@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {fetchOwnerCookie} from './owner-session.mjs';
 import assert from 'node:assert/strict';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -43,7 +44,7 @@ test('Chat renders natural paragraphs and formatting while preserving code, cita
 });
 test('Local search and follow-up HTTP routes enforce owner access and preserve reminder changes',async t=>{
  const directory=mkdtempSync(join(tmpdir(),'vareon-discovery-http-')),runtime=await createApp({directory,port:4458,noScheduler:true}),server=runtime.app.listen(4458,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(async()=>{await new Promise(r=>server.close(r));runtime.close();rmSync(directory,{recursive:true,force:true});});
- const base='http://127.0.0.1:4458',home=await fetch(base),cookie=home.headers.get('set-cookie').split(';')[0],headers={Cookie:cookie,'Content-Type':'application/json','X-Vareon-Local':'1'};
+ const base='http://127.0.0.1:4458',home=await fetch(base),cookie=await fetchOwnerCookie(base,home.headers.get('set-cookie').split(';')[0]),headers={Cookie:cookie,'Content-Type':'application/json','X-Vareon-Local':'1'};
  const p=saveRecord(runtime.store,'prospects',{name:'HTTP prospect',email:'preview@example.com'});let response=await fetch(base+'/api/search?q=HTTP',{headers});assert.equal(response.status,200);assert.ok((await response.json()).items.some(r=>r.id===p.id));
  response=await fetch(base+'/api/prospects/'+p.id+'/follow-up',{method:'POST',headers,body:JSON.stringify({action:'schedule',date:'2026-10-21'})});assert.equal(response.status,200);assert.equal((await response.json()).dueDate,'2026-10-21');assert.equal((await fetch(base+'/api/search?q=HTTP')).status,403);assert.equal((await fetch(base+'/api/search/resolve?type=oauthTokens&id=secret',{headers})).status,400);
 });

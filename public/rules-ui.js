@@ -20,7 +20,7 @@ export function createRulesUI(ctx){
       ${fields.length?`<button type="button" class="text-btn" id="rule-add-cond">+ Add a condition</button>`:''}
       ${draft.actions.map((a,i)=>`<div class="rule-step rule-action"><span class="rule-word">${i?'and':'then'}</span><select data-act="${i}" data-key="type" aria-label="Action">${opts(actionTypes,a.type)}</select>${['createTask','addNote','createSupportRequest'].includes(a.type)?`<input data-act="${i}" data-key="title" value="${esc(a.title)}" placeholder="${a.type==='createTask'?'Task title, e.g. Unblock {title}':a.type==='createSupportRequest'?'What the client needs, e.g. Check {title}':'Note title'}" aria-label="Title">`:''}${['addNote','comment','flag'].includes(a.type)?`<input data-act="${i}" data-key="body" value="${esc(a.body)}" placeholder="${a.type==='flag'?'What to show on Today':'Text'}" aria-label="Text">`:''}${a.type==='createTask'?`<label class="ticket-filter"><span>due in</span><input type="number" min="0" max="365" data-act="${i}" data-key="dueInDays" value="${esc(a.dueInDays)}" aria-label="Due in days" class="rule-days"><span>days</span></label>`:''}${['createTask','setPriority','createSupportRequest'].includes(a.type)?`<select data-act="${i}" data-key="priority" aria-label="Priority">${opts([['High','High'],['Medium','Medium'],['Low','Low']],a.priority||'Medium')}</select>`:''}${draft.actions.length>1?`<button type="button" class="text-btn" data-act-remove="${i}">Remove</button>`:''}</div>`).join('')}
       ${draft.actions.length<5?`<button type="button" class="text-btn" id="rule-add-act">+ Add an action</button>`:''}
-      <p class="ticket-children-note">You can use {title}, {key}, {status}, {project} and {client} in text.</p>
+      <p class="ticket-children-note">You can use {title}, {name}, {from}, {key}, {status}, {project} and {client} in text. For incoming email, {title} is the subject and {from} is the sender address.</p>
       <div class="notice rule-preview">${esc(describeRule(draft))}</div>`;
       const b=document.querySelector('#rule-builder');
       b.querySelector('#rule-name').oninput=e=>{draft.name=e.target.value;};
@@ -41,5 +41,10 @@ export function createRulesUI(ctx){
     document.querySelectorAll('[data-rule-toggle]').forEach(el=>el.onclick=()=>perform(async()=>{const on=el.getAttribute('aria-pressed')!=='true';await api('/records/automationRules/'+el.dataset.ruleToggle,{method:'PUT',body:JSON.stringify({enabled:on})});await refresh();toast(on?'Rule on. It acts on changes from now on.':'Rule off');}));
     document.querySelectorAll('[data-rule-dry]').forEach(el=>el.onclick=()=>perform(async()=>{const r=await api('/automation-rules/'+el.dataset.ruleDry+'/dry-run',{method:'POST',body:'{}'});modal('Dry run',`<p>${esc(r.rule)}</p><div class="notice">${esc(r.note)}</div><p class="sub">${r.total} matching record${r.total===1?'':'s'} right now. Nothing has been changed.</p>${r.examples.map(x=>`<div class="req-compare-item"><strong>${esc(x.title)}</strong>${x.actions.map(a=>`<p class="row-sub">${esc(a)}</p>`).join('')}</div>`).join('')}`);}));
   }
-  return {panel,bind};
+  function newForFunnel(funnel){builder({name:`Follow up: ${funnel.name}`,enabled:false,trigger:'form.submitted',conditions:[{field:'funnelId',op:'is',value:funnel.id}],actions:[{type:'createTask',title:'Follow up on {title}',dueInDays:1,priority:'Medium',body:''}]});}
+  function newForTrigger(trigger){
+    const event=TRIGGERS[trigger];if(!event)return;
+    builder({name:`When ${event.label}`,enabled:false,trigger,conditions:[],actions:[{type:'createTask',title:'Follow up on {title}',dueInDays:1,priority:'Medium',body:''}]});
+  }
+  return {panel,bind,newForFunnel,newForTrigger};
 }

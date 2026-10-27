@@ -77,6 +77,22 @@ test('the run works one eligible ticket at a time through the normal gates and w
   assert.ok(s.get('deliveryRuns',run.id).log.some(l=>/Submitted/.test(l.text)));
 });
 
+test('owner review clears the run waiting state without starting another assistant turn',async t=>{
+  const {s,p,actions}=fixture(t),run=s.put('deliveryRuns',{projectId:p.id,engine:'GPT',goal:'x',status:'Planning',log:[]});
+  const {planId}=await actions.execute('propose_delivery_plan',{runId:run.id,summary:'One change',items:[{ref:'form',title:'Card form',type:'Story',requirementCodes:['REQ-001'],acceptanceCriteria:'Visa works',implementationPlan:'Build the form'}]},'GPT');
+  approvePlan(s,run.id,planId);
+  const task=s.list('tasks').find(t=>t.deliveryRunId===run.id);
+  await actions.execute('start_delivery_ticket',{runId:run.id,taskId:task.id},'GPT');
+  await actions.execute('save_ticketEvidence',{record:{taskId:task.id,kind:'Change',title:'Form files',result:'Info',reference:'test/form.html'}},'GPT');
+  await actions.execute('save_ticketEvidence',{record:{taskId:task.id,kind:'Check',title:'HTML validation',result:'Passed'}},'GPT');
+  await actions.execute('submit_delivery_ticket',{runId:run.id,taskId:task.id},'GPT');
+  assert.equal(s.get('deliveryRuns',run.id).status,'Awaiting review');
+  saveRecord(s,'ticketEvidence',{taskId:task.id,kind:'Review',result:'Passed',title:'Owner review'},undefined,'You');
+  saveRecord(s,'tasks',{status:'QA / staging'},task.id,'You');
+  assert.equal(s.get('deliveryRuns',run.id).status,'Running');
+  assert.match(s.get('deliveryRuns',run.id).log.at(-1).text,/Resume the run when ready/);
+});
+
 test('resume continues the same conversation and cancel keeps the records',async t=>{
   const {s,p,runs,calls}=fixture(t),run=runs.start({projectId:p.id,engine:'Codex',goal:'Checkout'});await wait(20);
   const resumed=runs.resume(run.id);await wait(20);

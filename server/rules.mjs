@@ -16,7 +16,7 @@ function context(store,collection,record,previous){
   const projectId=collection==='projects'?record.id:record.projectId||task?.projectId||'',project=projectId?store.get('projects',projectId):null;
   const form=collection==='formSubmissions'?store.get('forms',record.formId):null;
   const clientId=record.clientId||project?.clientId||form?.clientId||'',client=clientId?store.get('clients',clientId):null;
-  return {task,projectId,clientId,vars:{title:record.title||record.name||'',name:record.name||record.title||'',key:task?.ticketKey||'',status:record[statusField(collection)]||'',project:project?.name||'',client:client?.name||'',company:record.company||''},fields:{...record,toStatus:record[statusField(collection)]||'',fromStatus:previous?.[statusField(collection)]||''}};
+  return {task,projectId,clientId,vars:{title:record.title||record.name||record.subject||'',name:record.name||record.title||record.fromName||'',key:task?.ticketKey||'',status:record[statusField(collection)]||'',project:project?.name||'',client:client?.name||'',company:record.company||'',from:record.from||''},fields:{...record,toStatus:record[statusField(collection)]||'',fromStatus:previous?.[statusField(collection)]||''}};
 }
 function matches(rule,fields){
   const t=TRIGGERS[rule.trigger];for(const [k,v] of Object.entries(t.implicit||{}))if(fields[k]!==v)return false;
@@ -25,6 +25,7 @@ function matches(rule,fields){
 }
 function plan(rule,collection,ctx){
   return rule.actions.map(a=>{const text=v=>fillTemplate(v,ctx.vars).slice(0,300);
+    if(a.type==='triageEmail')return {type:a.type,summary:'Queue GPT assessment and an optional unsent reply draft'};
     if(a.type==='createTask')return {type:a.type,summary:`Create task “${text(a.title)}”${a.dueInDays!==''&&a.dueInDays!==undefined?` due ${plusDays(brisbaneDay(),Number(a.dueInDays))}`:''}`};
     if(a.type==='addNote')return {type:a.type,summary:`Add note “${text(a.title)}”`};
     if(a.type==='createSupportRequest')return {type:a.type,summary:ctx.clientId?`Log support request “${text(a.title)}”`:'Skipped: no client'};
@@ -36,7 +37,8 @@ function plan(rule,collection,ctx){
 function execute(store,rule,collection,record,ctx){
   const results=[],text=(v,n=300)=>fillTemplate(v,ctx.vars).slice(0,n),by=`${ACTOR}: ${rule.name}`;
   for(const a of rule.actions){
-    if(a.type==='createTask'){const t=saveRecord(store,'tasks',{title:text(a.title)||'Follow up',projectId:ctx.projectId,clientId:ctx.clientId,priority:a.priority||'Medium',dueDate:a.dueInDays!==''&&a.dueInDays!==undefined?plusDays(brisbaneDay(),Number(a.dueInDays)):'',notes:`Created by the rule “${rule.name}”.`},undefined,by);results.push(`Created task ${t.ticketKey||t.title}`);}
+    if(a.type==='triageEmail'){const existing=store.list('emailTriages').find(j=>j.emailId===record.id&&j.ruleId===rule.id);if(existing){results.push('Email already queued for GPT assessment');continue;}store.put('emailTriages',{emailId:record.id,ruleId:rule.id,status:'Queued',requestedAt:new Date().toISOString()});results.push('Queued GPT email assessment');}
+    else if(a.type==='createTask'){const t=saveRecord(store,'tasks',{title:text(a.title)||'Follow up',projectId:ctx.projectId,clientId:ctx.clientId,priority:a.priority||'Medium',dueDate:a.dueInDays!==''&&a.dueInDays!==undefined?plusDays(brisbaneDay(),Number(a.dueInDays)):'',notes:`Created by the rule “${rule.name}”.`},undefined,by);results.push(`Created task ${t.ticketKey||t.title}`);}
     else if(a.type==='addNote'){const n=saveRecord(store,'notes',{title:text(a.title)||rule.name,body:text(a.body,5000),projectId:ctx.projectId,clientId:ctx.clientId},undefined,by);results.push(`Added note ${n.title}`);}
     else if(a.type==='createSupportRequest'){if(!ctx.clientId){results.push('Skipped support request: no client');continue;}const r=saveRecord(store,'supportRequests',{title:text(a.title)||rule.name,clientId:ctx.clientId,projectId:ctx.projectId,priority:SUPPORT_PRIORITY[a.priority]||'Normal',channel:'Other',notes:`Raised by rule “${rule.name}”.`},undefined,by);results.push(`Logged support request ${r.title}`);}
     else if(a.type==='setPriority'){if(!ctx.task){results.push('Skipped priority: not a task');continue;}saveRecord(store,'tasks',{priority:a.priority},ctx.task.id,by);results.push(`Set priority to ${a.priority}`);}

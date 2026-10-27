@@ -16,6 +16,15 @@ export function createReviews(store) {
     const approval=store.put('approvals',{kind:'record',collection,entityId:id,status:'Pending',title:`${id?'Review':'Create'}: ${proposed.title||proposed.name||proposed.subject||collection}`,requestedBy:actor,payload});
     store.log(`Requested review: ${approval.title}`,actor,id||approval.id);emit();return approval;
   }
+  function revise(id,changes={}) {
+    const approval=store.get('approvals',id);
+    if(!approval||approval.status!=='Pending'||approval.kind!=='record'||approval.entityId||!['tasks','notes'].includes(approval.payload?.collection)||approval.requestedBy!=='GPT · inbox')throw new Error('This inbox proposal cannot be edited.');
+    const allowed=approval.payload.collection==='tasks'?['title','notes','dueDate']:['title','body'];
+    if(!changes||typeof changes!=='object'||Array.isArray(changes)||Object.keys(changes).some(k=>!allowed.includes(k)))throw new Error('Only the proposed title, details and date can be changed.');
+    const record=schemas[approval.payload.collection].parse({...approval.payload.record,...changes});
+    const updated=store.put('approvals',{...approval,payload:{...approval.payload,record}});
+    store.log(`Edited inbox proposal: ${approval.title}`,'You',id);emit();return updated;
+  }
   function assertCurrent(approval) {
     if(approval.kind!=='record')return;
     const current=approval.entityId?store.get(approval.payload.collection,approval.entityId):null;
@@ -44,5 +53,5 @@ export function createReviews(store) {
       const saved=store.put('approvals',{...approval,status:'Approved',reviewNote:note,resultId:result?.id||approval.entityId||'',resolvedAt:new Date().toISOString(),resolvedBy:'You'});emit();return saved;
     }catch(error){store.put('approvals',{...approval,status:'Failed',error:error.message,reviewNote:note,resolvedAt:new Date().toISOString()});emit();throw error;}
   }
-  return {request,resolve,assertCurrent};
+  return {request,revise,resolve,assertCurrent};
 }

@@ -69,7 +69,7 @@ export function createFormsUI(ctx){
     const type={email:'email',phone:'tel',number:'number',date:'date'}[f.type]||'text';
     return `<div class="field">${label}<input id="${id}" name="${f.id}" type="${type}" ${req} ${type==='number'?'step="any"':''}>${hint}</div>`;
   }
-  function fill(form,{test=false}={}){
+  function fill(form,{test=false,funnelId=''}={}){
     const b=brand();
     ctx.modal(form.name,`<div class="ff-card"><div class="ff-head">${b.logo?`<img src="${esc(b.logo)}" alt="" class="brand-logo-preview">`:''}<strong>${esc(b.name)}</strong>${test?'<span class="badge amber">Trying it. Nothing is saved.</span>':''}</div><form id="ff-form" novalidate>${form.description?`<p class="sub">${esc(form.description)}</p>`:''}<div class="form-grid">${form.fields.map(control).join('')}</div>${form.consentText?`<label class="tick ff-consent"><input type="checkbox" id="ff-consent"> ${esc(form.consentText)}</label>`:''}<div class="form-error hidden" id="ff-error"></div><button class="ff-submit" type="submit" style="background:${esc(b.accent)};color:${textOn(b.accent)}">${esc(form.submitLabel||'Send')}</button></form>${b.footer?`<small class="ff-footer">${esc(b.footer)}</small>`:''}</div>`,'wide');
     document.querySelector('#ff-form').onsubmit=async e=>{
@@ -77,7 +77,7 @@ export function createFormsUI(ctx){
       for(const f of form.fields){const el=e.target.elements[f.id];answers[f.id]=f.type==='checkbox'?el.checked:el.value;}
       try{
         if(test){const {errors}=checkAnswers(form.fields,answers);if(errors.length)throw new Error(errors[0]);}
-        else await api(`/forms/${form.id}/responses`,{method:'POST',body:JSON.stringify({answers,consent:document.querySelector('#ff-consent')?.checked===true})});
+        else await api(`/forms/${form.id}/responses`,{method:'POST',body:JSON.stringify({answers,consent:document.querySelector('#ff-consent')?.checked===true,funnelId})});
         document.querySelector('#ff-form').outerHTML=`<div class="notice ff-thanks">${esc(form.thanks)}</div><div class="form-actions"><button class="btn" id="ff-done">Done</button></div>`;
         document.querySelector('#ff-done').onclick=()=>ctx.closeModal();
         if(!test)await ctx.refresh();
@@ -98,5 +98,5 @@ export function createFormsUI(ctx){
     document.querySelectorAll('[data-form-responses]').forEach(b=>b.onclick=()=>showResponses(b.dataset.formResponses));
   }
 
-  return {render,build,bind};
+  return {render,build,fill,bind};
 }

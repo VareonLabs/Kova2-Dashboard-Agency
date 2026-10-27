@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createStore} from '../server/store.mjs';
 import {saveRecord,snapshot} from '../server/domain.mjs';
-import {METRICS,METRIC_KEYS,DEFAULT_WIDGETS,formatMetric} from '../public/dashboards.js';
+import {METRICS,METRIC_KEYS,DEFAULT_WIDGETS,formatMetric,dashboardCashFlow} from '../public/dashboards.js';
 
 function fixture(t){const dir=mkdtempSync(join(tmpdir(),'vareon-dash-')),store=createStore(dir);t.after(()=>{store.close();rmSync(dir,{recursive:true,force:true});});return store;}
 const NOW=new Date('2026-10-24T02:00:00Z');
@@ -38,4 +38,9 @@ test('figures read the records they describe',t=>{
   assert.equal(get('retainerMonthly'),250);
   assert.equal(formatMetric(METRICS.find(m=>m.key==='winRate'),null,String),'–');
   assert.equal(formatMetric(METRICS.find(m=>m.key==='winRate'),67,String),'67%');
+});
+
+test('cash flow chart uses recorded payment and paid expense dates',()=>{
+  const rows=dashboardCashFlow({payments:[{paidDate:'2026-09-12',amount:125},{paidDate:'2026-10-02',amount:75}],expenses:[{date:'2026-10-05',amount:30,paid:true},{date:'2026-10-06',amount:80,paid:false}]},2,NOW);
+  assert.deepEqual(rows.map(r=>[r.key,r.received,r.costs]),[['2026-09',125,0],['2026-10',75,30]]);
 });

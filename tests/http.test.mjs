@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {fetchOwnerCookie,authCookie,OWNER} from './owner-session.mjs';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -13,7 +14,7 @@ test('local HTTP access, complete OAuth PKCE flow, MCP writes, scopes, rotation 
   t.after(async()=>{await new Promise(r=>server.close(r));runtime.close();rmSync(directory,{recursive:true,force:true});});
   const base=`http://127.0.0.1:${server.address().port}`;let cookie='';
   const request=(path,options={})=>new Promise((resolve,reject)=>{const req=httpRequest(base+path,{method:options.method||'GET',headers:{Host:'localhost:4417',...(cookie?{Cookie:cookie}:{}),...options.headers}},res=>{const chunks=[];res.on('data',d=>chunks.push(d));res.on('end',()=>{const headers=new Headers();for(const[k,v]of Object.entries(res.headers))if(v!==undefined)for(const item of Array.isArray(v)?v:[v])headers.append(k,item);resolve(new Response(Buffer.concat(chunks),{status:res.statusCode,headers}));});});req.on('error',reject);req.end(options.body?.toString());});
-  const home=await request('/');assert.equal(home.status,200);cookie=home.headers.get('set-cookie').split(';')[0];
+  const home=await request('/');assert.equal(home.status,200);cookie=home.headers.get('set-cookie').split(';')[0];const up=await request('/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json','X-Vareon-Local':'1'},body:JSON.stringify(OWNER)});assert.equal(up.status,200,up.body);cookie+='; '+authCookie((up.headers.get?up.headers.get('set-cookie'):up.headers['set-cookie']));
   assert.equal((await request('/api/health')).status,200);
   assert.equal((await request('/api/health',{headers:{Host:'tunnel.example'}})).status,403);
   assert.equal((await request('/api/records/clients',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"name":"Forbidden"}'})).status,403);

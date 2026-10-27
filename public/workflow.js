@@ -1,18 +1,42 @@
-// Ticket workflow shared by the server (enforcement) and the browser (checklists).
-// Simple projects keep the original agency task statuses. Software projects use gated statuses:
-// a ticket only moves forward when the evidence each step needs has been recorded.
+// Project workflows shared by the server and the browser. Industry-specific flows keep their own
+// statuses while using the same work-item records and shared integrations.
 export const SIMPLE_STATUSES=['Backlog','To do','In progress','In review','Blocked','Done','Cancelled'];
 export const SOFTWARE_FLOW=['Backlog','Ready','In progress','In review','QA / staging','Ready for release','Done'];
 export const SOFTWARE_STATUSES=[...SOFTWARE_FLOW,'Blocked','Cancelled'];
-export const ALL_STATUSES=['Backlog','To do','Ready','In progress','In review','QA / staging','Ready for release','Blocked','Done','Cancelled'];
+export const FIELD_SERVICE_FLOW=['New','Scheduled','Assigned','In progress','Quality check','Ready to invoice','Done'];
+export const FIELD_SERVICE_STATUSES=[...FIELD_SERVICE_FLOW,'Blocked','Cancelled'];
+export const ALL_STATUSES=[...new Set(['Backlog','To do','Ready','New','Scheduled','Assigned','In progress','In review','QA / staging','Quality check','Ready to invoice','Ready for release','Blocked','Done','Cancelled'])];
 export const CLOSED_STATUSES=['Done','Cancelled'];
 export const EVIDENCE_KINDS=['Change','Check','Review','Acceptance','Environment','Release','Documentation'];
 export const OWNER_ONLY_PASSES=['Review','Release'];
 export const evidenceHelp={Change:'A reviewable change: pull request, commit, diff or delivered file.',Check:'A test, build, lint or other check and its actual result.',Review:'A person’s review outcome. Only the owner can record an approval.',Acceptance:'Acceptance criteria checked, ideally per linked requirement.',Environment:'Where it was verified: preview, staging or production URL.',Release:'The verified release or accepted deliverable. Only the owner can record it.',Documentation:'Docs, release notes or known limitations updated.'};
 
 export const isSoftware=project=>project?.workflow==='Software';
-export const statusesFor=project=>isSoftware(project)?SOFTWARE_STATUSES:SIMPLE_STATUSES;
+export const isFieldService=project=>project?.workflow==='Field service';
+export const isIndustryWorkflow=project=>project?.workflow==='Industry';
+export const workflowLabel=project=>isSoftware(project)?'Software':isFieldService(project)?'Field service':isIndustryWorkflow(project)?String(project.industry||'Industry'):'Simple';
+export const statusesFor=project=>isSoftware(project)?SOFTWARE_STATUSES:isFieldService(project)?FIELD_SERVICE_STATUSES:SIMPLE_STATUSES;
+export const projectStatusesFor=project=>isIndustryWorkflow(project)?[...new Set([...(project.workflowStages||[]),'Complete','On hold'])]:['Planning','Active','On hold','Complete'];
+export const workflowStatusLabel=(status,project)=>status==='Done'&&isIndustryWorkflow(project)?project.completionLabel||'Completed':status;
 export const isClosed=task=>CLOSED_STATUSES.includes(task?.status);
+
+export function fieldServiceGateProblems(task,target,{people=[]}={}){
+  if(target==='Blocked'){if(!String(task.blockedReason||'').trim())return ['Say what is blocking this job and what it needs next.'];return [];}
+  if(target==='Cancelled'){if(!String(task.cancelReason||'').trim())return ['Record why this job was cancelled.'];return [];}
+  const to=FIELD_SERVICE_FLOW.indexOf(target);if(to<0)return [`${target} is not used in the field-service workflow.`];
+  const start=['Blocked','Cancelled'].includes(task.status)?-1:FIELD_SERVICE_FLOW.indexOf(task.status);
+  if(start>=0&&to<start)return [];
+  const need=step=>FIELD_SERVICE_FLOW.indexOf(step)<=to;
+  const problems=[];
+  if(need('Scheduled')&&!task.scheduledDate)problems.push('Add the visit date before scheduling this job.');
+  if(need('Scheduled')&&!String(task.serviceLocation||'').trim())problems.push('Add the property or work location before scheduling this job.');
+  if(need('Assigned')){
+    const person=people.find(p=>p.id===task.assigneeId&&p.status==='Active');
+    if(!person)problems.push('Assign this job to an active team member.');
+  }
+  if(need('Quality check')&&!String(task.completionNote||'').trim()&&!task.attachmentIds?.length)problems.push(to>=FIELD_SERVICE_FLOW.indexOf('Done')?'Record the completed work with a note or photo before closing the job.':'Add a completion note or attach a photo before quality check.');
+  return problems;
+}
 
 // Evidence order comes from the per-ticket sequence the server assigns; timestamps can tie.
 export const inOrder=list=>[...list].sort((a,b)=>(a.sequence||0)-(b.sequence||0)||Date.parse(a.recordedAt||a.createdAt)-Date.parse(b.recordedAt||b.createdAt));

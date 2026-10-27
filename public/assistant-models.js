@@ -1,5 +1,5 @@
 export function createModelControls(ctx){
-  const {api,esc,icon}=ctx,catalog={},errors={},pending={},times={};
+  const {api,esc,icon}=ctx,catalog={},errors={},pending={},times={},connectionState={};
   const modelKey=e=>e==='Codex'?'codexModel':e==='Claude'?'claudeModel':'gptModel';
   const key=()=>{const d=ctx.getData();return ctx.getEngine()==='Codex'?'Codex':ctx.getEngine()==='Claude'?'Claude':'GPT:'+String(d.connections.chatgpt?.clientId||'')+':'+String(d.connections.chatgpt?.email||'');};
   function contents(){
@@ -10,7 +10,10 @@ export function createModelControls(ctx){
   function html(){return `<div class="assistant-model-control" id="assistant-model-control">${contents()}</div>`;}
   function update(){const target=document.querySelector('#assistant-model-control');if(target){target.innerHTML=contents();bindEvents();}}
   async function load(force=false){
-    const engine=ctx.getEngine(),id=key();if(engine==='GPT'&&!ctx.getData().connections.gpt||engine==='Claude'&&!ctx.getData().connections.claude?.connected)return;
+    const engine=ctx.getEngine(),id=key(),connected=engine==='Codex'||(engine==='Claude'?ctx.getData().connections.claude?.connected:ctx.getData().connections.gpt);
+    if(!connected){connectionState[id]=false;return;}
+    if(connectionState[id]===false)force=true;
+    connectionState[id]=true;
     if(pending[id]||!force&&times[id]&&Date.now()-times[id]<300000)return;
     pending[id]=true;errors[id]='';update();
     try{catalog[id]=await api('/assistant/models?engine='+engine+(force?'&refresh=true':''));if(!catalog[id].length)errors[id]='No models were returned for this connection.';}

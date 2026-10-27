@@ -19,6 +19,7 @@ export function dealStats(deals,now=new Date()){
 
 export function createDealsUI(ctx){
   const {esc,icon,api,currency,fmt}=ctx;
+  let view='board';
   const data=()=>ctx.getData();
   const who=d=>data().clients.find(c=>c.id===d.clientId)?.name||data().prospects.find(p=>p.id===d.prospectId)?.name||'No contact';
 
@@ -30,11 +31,14 @@ export function createDealsUI(ctx){
   function render(){
     const list=ctx.viewRecords('deals',data().deals||[]),stats=dealStats(data().deals||[]);
     const summary=`<div class="deal-summary">${[['Open deals',stats.open],['Open value',currency(stats.openValue)],['Weighted forecast',currency(stats.weighted)],['Won this month',currency(stats.wonThisMonth)],['Win rate',stats.winRate===null?'–':stats.winRate+'%']].map(([k,v])=>`<div><small>${k}</small><strong>${v}</strong></div>`).join('')}</div>`;
-    const board=`<div class="kanban" aria-label="Deals board">${DEAL_STAGES.map(stage=>{const cards=list.filter(d=>d.stage===stage);return `<section class="kanban-column" aria-label="${esc(stage)} column"><header class="column-heading"><span class="column-dot"></span>${esc(stage)}<span class="column-count">${cards.length}</span></header><div class="kanban-items">${cards.map(card).join('')}${!cards.length?'<div class="column-empty">No deals here.</div>':''}</div></section>`;}).join('')}</div>`;
-    return ctx.heading('SELL','Deals','Every opportunity by stage, with the value you expect to close.',ctx.addButton('deals','New deal'))+ctx.toolbar(['All'])+summary+board;
+    const board=`<div class="kanban opportunity-board" aria-label="Opportunities board">${DEAL_STAGES.map(stage=>{const cards=list.filter(d=>d.stage===stage),value=cards.reduce((n,d)=>n+Number(d.value||0),0);return `<section class="kanban-column" aria-label="${esc(stage)} column"><header class="column-heading"><span class="column-dot"></span><span class="opportunity-stage-name">${esc(stage)}<small>${esc(currency(value))}</small></span><span class="column-count">${cards.length}</span></header><div class="kanban-items">${cards.map(card).join('')}${!cards.length?'<div class="column-empty">No opportunities at this stage.</div>':''}</div></section>`;}).join('')}</div>`;
+    const rows=`<div class="table-wrap opportunity-list"><table class="table"><thead><tr><th>Opportunity</th><th>Contact</th><th>Stage</th><th>Value</th><th>Expected close</th><th>Proposal</th></tr></thead><tbody>${list.map(d=>{const proposal=d.proposalId?data().proposals.find(p=>p.id===d.proposalId):null;return `<tr><td><button class="link" data-edit="deals:${esc(d.id)}">${esc(d.title)}</button></td><td>${esc(who(d))}</td><td>${esc(d.stage)}</td><td>${esc(currency(d.value))}</td><td>${d.expectedClose?esc(fmt(d.expectedClose)):'—'}</td><td>${proposal?esc(proposal.status):'—'}</td></tr>`;}).join('')||'<tr><td colspan="6">No opportunities match this view.</td></tr>'}</tbody></table></div>`;
+    const switcher=`<div class="opportunity-view-switch" role="group" aria-label="Opportunity display"><button type="button" data-deals-view="board" aria-pressed="${view==='board'}">Board</button><button type="button" data-deals-view="list" aria-pressed="${view==='list'}">List</button></div>`;
+    return ctx.heading('SELL','Opportunities','Track each potential sale from qualification to a decision.',ctx.addButton('deals','New opportunity'))+ctx.toolbar(['All'])+summary+switcher+(view==='list'?rows:board);
   }
 
   function bind(){
+    document.querySelectorAll('[data-deals-view]').forEach(el=>el.onclick=()=>{view=el.dataset.dealsView;ctx.refresh();});
     document.querySelectorAll('[data-deal-stage]').forEach(el=>el.onchange=()=>ctx.perform(async()=>{
       const deal=data().deals.find(d=>d.id===el.dataset.dealStage);
       if(el.value==='Lost'&&!deal.lostReason){await ctx.refresh();ctx.edit('deals',{...deal,stage:'Lost'});return;}

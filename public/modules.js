@@ -3,7 +3,7 @@
 export const MODULES=[
   {key:'sales',label:'Sales pipeline',description:'Prospects, follow-ups, client onboarding and contracts.',pages:['prospects','followups','onboarding','proposals','contracts']},
   {key:'inbox',label:'Inbox',description:'Your Outlook mailbox inside VareonHQ.',pages:['inbox']},
-  {key:'marketing',label:'Marketing',description:'Content studio, website analytics and the media library.',pages:['marketing','analytics','assets']},
+  {key:'marketing',label:'Marketing',description:'Content studio, website analytics and the media library.',pages:['marketing','analytics','assets','funnels']},
   {key:'finance',label:'Finance and time',description:'Budgets and invoices, cash-flow forecast, time and profitability, renewals and client reports.',pages:['finance','retainers','forecast','time','renewals','reports'],projectTabs:['Time']},
   {key:'meetings',label:'Meetings',description:'Meeting notes and their reviewed action proposals.',pages:['meetings']},
   {key:'software',label:'Software delivery',description:'Coding workspaces, live preview, technology records and each project’s Delivery tab: repositories, environments, releases and delivery runs. Tickets in software projects keep their gates either way.',pages:['build','codex','technology'],projectTabs:['Delivery']},

@@ -4,9 +4,9 @@ Version: 1.0 draft · 23 October 2026 · Owner: CJ Perry
 
 ## Product direction
 
-One connected platform for running an agency and delivering its work: business operations, client relationships, documents, marketing and software delivery. GPT and Codex operate shared records visibly, with traceable actions and appropriate human approval. No claim of being the first such product is established.
+Kova is an AI operations platform that helps a business complete its work with human oversight. The same shared platform and integration catalogue support different industries; each industry profile shapes the records, terminology, workflows, templates, views and assistant guidance. Integrations remain available across profiles and are not hidden by industry.
 
-Initial customer: small agencies delivering websites, software and marketing. VareonHQ remains the working internal installation; commercial pilot readiness must be demonstrated separately.
+Software delivery remains the internal proving ground. Field Services, using cleaning as its first example, is the first distinct customer-facing profile. VareonHQ is the working local installation; commercial readiness must be demonstrated separately.
 
 ## Product principles
 
@@ -16,7 +16,7 @@ Initial customer: small agencies delivering websites, software and marketing. Va
 4. Distinguish proposed, attempted, verified and completed actions.
 5. Record evidence for completion and explain blockers and missing data.
 6. Preserve business data, sign-ins and existing workflows through upgrades.
-7. Dark charcoal, official VareonHQ lime #C6F432, official logo, consistent spacing and radii. No purple, sage, olive or cream.
+7. The current VareonHQ visual requirement is a flat light neutral theme, official lime #C6F432 used sparingly, official logo, and consistent spacing and radii. No purple, sage, olive, cream or neumorphic shadows.
 8. Desktop and iPhone are separate layout requirements, not scaled versions of the same screen.
 9. Current installation stays local on the Mac, bound to localhost:4320 behind private Tailscale Serve.
 10. Every installed update is verified at https://catlins-macbook-air.tail9bef0e.ts.net/.

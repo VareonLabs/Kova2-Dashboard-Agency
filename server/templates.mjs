@@ -47,7 +47,7 @@ function createItems(store,{project,clientId,startDate,version,items,kind,actor}
   const software=project.workflow==='Software',created=[];
   for(const item of items){
     const exists=store.list('tasks').some(t=>t.projectId===project.id&&t.templateItemKey===kind+':'+item.key);if(exists)continue;
-    const task=saveRecord(store,'tasks',{title:item.title,type:item.type||'Task',projectId:project.id,clientId,status:software?'Backlog':'To do',dueDate:startDate?plusDays(startDate,item.offset):'',acceptanceCriteria:item.acceptanceCriteria||'',notes:`From template ${version.snapshot.name} v${version.number}`},undefined,actor);
+    const task=saveRecord(store,'tasks',{title:item.title,type:item.type||'Task',projectId:project.id,clientId,status:software?'Backlog':project.workflow==='Field service'?'New':'To do',dueDate:startDate?plusDays(startDate,item.offset):'',acceptanceCriteria:item.acceptanceCriteria||'',notes:`From template ${version.snapshot.name} v${version.number}`},undefined,actor);
     created.push(store.put('tasks',{...store.get('tasks',task.id),templateItemKey:kind+':'+item.key,templateVersion:version.number}).id);
   }
   return created;

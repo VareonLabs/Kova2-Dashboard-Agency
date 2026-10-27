@@ -12,6 +12,10 @@ Phase ordering expresses dependencies, not delivery-date promises. Feature descr
 Deliver: current-capability inventory, consolidated product blueprint, agency engineering standard draft and prioritised implementation backlog.
 Exit: distinguish implemented features from planned work; record dependencies and commercial boundaries; make these documents available inside the dashboard.
 
+### Industry workspace direction (owner agreed, 24 October 2026)
+
+Kova uses one shared integration catalogue across industries. Industry profiles change the business workflows, records, terminology, templates and assistant guidance. Software is the internal proving ground; Field Services is the first distinct customer-facing profile, with cleaning as its first example. The first implementation slice adds Field service projects with job stages, location/date/assignment fields, completion evidence, a schedule view and project finance panels. Versioned profiles, bookings, checklists, mobile completion and provider sync remain planned. See `docs/product/INDUSTRY-WORKSPACES.md`.
+
 ## Phase 1 — Connected experience and design foundation
 
 1. Define charcoal/lime design tokens, density, accessibility and white-label configuration boundaries.
@@ -31,6 +35,18 @@ Exit: one complete manual client/project journey works through the three flagshi
 5. Add Codex planning/ticket/status/evidence workflows and manual equivalents.
 6. Integrate actual repository checks, preview/staging references and approved release processes.
 Exit: a scoped feature can move from brief → PRD → tickets → implementation → verified delivery, with blocked transitions, review evidence and no invented deployment success.
+
+## Phase 2A — Industry profile foundation and field services
+
+1. Separate industry profiles, project workflows and integration connections in the domain model.
+2. Make profile definitions versioned and keep current Simple/Software records compatible.
+3. Drive workflow stages and required evidence from profile definitions, enforced by the server.
+4. Finish the Software profile as the internal reference journey.
+5. Add Field Services records for locations, bookings, jobs, assignments, checklists and work evidence, linked to shared clients, people, calendar and finance.
+6. Build and verify the mobile job lifecycle before adding more industries.
+7. Add provider-backed booking/accounting sync as separately scoped integration work, with traceable source, freshness and conflict handling.
+
+Exit: one software workflow and one field-service job workflow complete end to end in the same platform, using shared connections and records without duplicate client or invoice data.
 
 ## Phase 3 — Complete agency delivery
 
@@ -69,3 +85,7 @@ Exit: isolation/security/recovery/billing tests pass; reliability and support ob
 ## Permanent preview requirement
 
 Every installed update remains accessible and verified at https://catlins-macbook-air.tail9bef0e.ts.net/. Tailscale Serve proxies localhost:4320. Preserve the loopback binding, owner/session/origin checks and current business data. Document-only planning updates can be published through the existing Document library without a runtime deployment.
+
+## Industry onboarding and workspace adaptation (owner direction, 24 Oct 2026)
+
+The product must work for the industry a business chooses during first-run setup; software agency is VareonHQ's proving ground, not the product's boundary. Build free-text custom industries plus editable starter profiles. A profile sets customer/work/task terminology, default work stages, visible areas, starter records and assistant operating guidance. Keep the Connections catalogue and authorization model shared across industries. Profile changes must not delete records or silently reinterpret existing workflows. The current implementation foundation covers first-run setup, editable profile settings, navigation terms/areas, stages for newly created industry-profile work and profile context for GPT, Codex and Claude. The remaining work is richer reusable industry packs: field-specific records, templates, checklists, reports, automations, saved views, permissions and safe profile/version changes.

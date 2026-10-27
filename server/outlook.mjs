@@ -3,6 +3,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { readSecret, writeSecret, deleteSecret } from './secrets.mjs';
 import { graphEmail } from './email-html.mjs';
 import { cleanReceivedHTML, contentId, emailText, imageData, receivedDocument } from './received-email.mjs';
+import { fireRules } from './rules.mjs';
 const scopes=['User.Read','Mail.ReadWrite','Mail.Send','Contacts.Read','offline_access'];
 export function createOutlook(store, baseUrl,dependencies={}) {
   const pending=new Map();
@@ -121,13 +122,15 @@ export function createOutlook(store, baseUrl,dependencies={}) {
     async sync(folderId='') {
       await syncFolders();let contactError='';try{await syncContacts();}catch(error){contactError=error.message;store.setting('contactsSyncError',contactError);}
       const folder=folderId?store.get('mailFolders',folderId):store.list('mailFolders').find(f=>f.isInbox);if(folderId&&!folder?.graphId)return {count:0,contactError,localOnly:true};
-      const graphId=folder?.graphId||'inbox';const data=await graph(`/me/mailFolders/${encodeURIComponent(graphId)}/messages?$top=100&$orderby=receivedDateTime%20desc&$select=id,subject,body,bodyPreview,from,toRecipients,receivedDateTime,isRead,webLink,parentFolderId`);
+      const graphId=folder?.graphId||'inbox',isInbox=graphId===store.settings().outlookInboxId,ruleReady=!!store.settings().outlookInboxRulesReady;const data=await graph(`/me/mailFolders/${encodeURIComponent(graphId)}/messages?$top=100&$orderby=receivedDateTime%20desc&$select=id,subject,body,bodyPreview,from,toRecipients,receivedDateTime,isRead,webLink,parentFolderId`);
       for(const mail of data.value){
         const from=mail.from?.emailAddress?.address||'';const client=store.list('clients').find(c=>c.email?.toLowerCase()===from.toLowerCase());
         const old=store.list('emails').find(e=>e.graphId===mail.id)||store.get('emails',`outlook-${mail.id}`);
         const id=old?.id||`outlook-${mail.id}`,content=saveContent(id,mail.body||{content:mail.bodyPreview||''});
-        store.put('emails',{...old,id,graphId:mail.id,subject:mail.subject||'(No subject)',...content,from,fromName:mail.from?.emailAddress?.name||from,to:store.settings().email,status:'Received',receivedAt:mail.receivedDateTime,isRead:mail.isRead,webLink:mail.webLink,folderId:'outlook-'+(mail.parentFolderId||graphId),deletedAt:store.get('mailFolders','outlook-'+(mail.parentFolderId||graphId))?.isDeletedItems?(old?.deletedAt||new Date().toISOString()):null,clientId:old?.clientId||client?.id||''});
+        const saved=store.put('emails',{...old,id,graphId:mail.id,subject:mail.subject||'(No subject)',...content,from,fromName:mail.from?.emailAddress?.name||from,to:store.settings().email,status:'Received',receivedAt:mail.receivedDateTime,isRead:mail.isRead,webLink:mail.webLink,folderId:'outlook-'+(mail.parentFolderId||graphId),deletedAt:store.get('mailFolders','outlook-'+(mail.parentFolderId||graphId))?.isDeletedItems?(old?.deletedAt||new Date().toISOString()):null,clientId:old?.clientId||client?.id||''});
+        if(ruleReady&&!old&&isInbox&&!saved.deletedAt)fireRules(store,'emails',null,saved,'Outlook');
       }
+      if(isInbox&&!ruleReady)store.setting('outlookInboxRulesReady',true);
       store.setting('outlookLastSync',new Date().toISOString());if(!contactError)store.setting('contactsSyncError','');store.log('Synced Outlook mail and contacts');return {count:data.value.length,contactError};
     },
     async send(email,attachments=[]) {

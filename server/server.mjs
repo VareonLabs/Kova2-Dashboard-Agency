@@ -1,3 +1,4 @@
+import {createAIHub} from './ai-hub.mjs';
 import {createBackups} from './backups.mjs';
 import {privateAccess} from './private-access.mjs';
 import {createSearch,searchTypes} from './search.mjs';
@@ -16,6 +17,8 @@ import { createStore, defaults } from './store.mjs';
 import { snapshot, saveRecord, deleteRecord, approvePrdRevision, approveStandardRevision, approveDesignRevision, acceptProposal, submitForm, invoiceUnbilledTime, invoiceRetainer } from './domain.mjs';
 import { createActions } from './actions.mjs';
 import { saveProfile, defaultProfile } from './profile.mjs';
+import { saveIndustryProfile, defaultIndustryProfile, emptyIndustryProfile, industryProfileSchema } from './industry-profile.mjs';
+import { createLocalAuth } from './local-auth.mjs';
 import { saveRecording, removeRecording, MAX_RECORDING } from './recordings.mjs';
 import { importAdStats, adSummary, importSocialStats, socialSummary } from './ads-social.mjs';
 import { createAssistant } from './assistant.mjs';
@@ -34,6 +37,7 @@ import { createDelivery } from './delivery.mjs';
 import { createDeliveryRuns } from './delivery-runs.mjs';
 import { portfolio } from './portfolio.mjs';
 import { dryRun, scanRules } from './rules.mjs';
+import { createEmailTriage } from './email-triage.mjs';
 import { publishTemplate, winProspect, templateUpdate, applyTemplateUpdate } from './templates.mjs';
 import { cleanEmailHTML,buildEmailHTML,graphEmail } from './email-html.mjs';
 
@@ -42,10 +46,12 @@ export async function createApp(options={}) {
   const directory=options.directory||process.env.VAREON_DATA_DIR||resolve(root,'data');
   mkdirSync(resolve(directory,'codex-workspace'),{recursive:true,mode:0o700});
   mkdirSync(resolve(directory,'claude-workspace'),{recursive:true,mode:0o700});
-  const store=createStore(directory);for(const[k,v]of Object.entries(defaults))if(store.settings()[k]===undefined)store.setting(k,v);
+  const store=createStore(directory);const hadSettings=Object.keys(store.settings()).length>0,hadRecords=['clients','projects','tasks','invoices'].some(c=>store.list(c).length>0);for(const[k,v]of Object.entries(defaults))if(store.settings()[k]===undefined)store.setting(k,v);
+  if(store.settings().workspaceProfile===undefined)store.setting('workspaceProfile',hadSettings||hadRecords?defaultIndustryProfile():emptyIndustryProfile());
+  if(store.settings().workspaceSetupComplete===undefined)store.setting('workspaceSetupComplete',hadSettings||hadRecords);
   const port=Number(options.port||process.env.PORT||4317),baseUrl=`http://localhost:${port}`;
   const analytics=createAnalytics(store,port,options.analyticsDeps||{}),actions=createActions(store,undefined,undefined,analytics),chatgpt=createChatGPTAuth(store,port),claude=createClaudeEngine(store,directory),assistant=createAssistant(store,actions,directory,{chatgpt,claude}),outlook=createOutlook(store,baseUrl),scheduler=createScheduler(store,assistant);
-  const chatFiles=createChatFiles(store,directory),reviews=createReviews(store);
+  const chatFiles=createChatFiles(store,directory),reviews=createReviews(store),emailTriage=createEmailTriage(store,assistant,reviews),aiHub=createAIHub(store,assistant);
   const {planning,history:actionHistory,reports,businessOps}=actions;
   let meetingAnalysis=false;const idle=()=>!meetingAnalysis&&!store.get('assistantState','current')?.busy&&!store.list('automations').some(j=>j.running)&&!store.list('clientReports').some(j=>j.status==='Generating');
   const backups=createBackups(store,{idle});
@@ -61,22 +67,37 @@ export async function createApp(options={}) {
   const access=privateAccess(port,privateConfig),localHost=access.allowed;
   const cookieName=`vareon_session_${port}`;
   const cookieOK=req=>{const value=(req.headers.cookie||'').split(';').map(c=>c.trim()).find(c=>c.startsWith(cookieName+'='))?.slice(cookieName.length+1)||'';return value.length===session.length&&timingSafeEqual(Buffer.from(value),Buffer.from(session));};
+  const authCookieName=`vareon_auth_${port}`,localAuth=createLocalAuth(store);
+  const cookieValue=(req,name)=>(req.headers.cookie||'').split(';').map(c=>c.trim()).find(c=>c.startsWith(name+'='))?.slice(name.length+1)||'';
+  const authToken=req=>cookieValue(req,authCookieName);
+  const issueAuthCookie=(req,res,value)=>res.cookie(authCookieName,value.token,{httpOnly:true,sameSite:'strict',secure:access.remote(req),path:'/',...(value.maxAge?{maxAge:value.maxAge*1000}:{})});
+  const clearAuthCookie=(req,res)=>res.clearCookie(authCookieName,{httpOnly:true,sameSite:'strict',secure:access.remote(req),path:'/'});
+  const safeAuthChange=(req,res)=>{if(!localHost(req)||!cookieOK(req))return res.status(403).json({error:'Open VareonHQ on this Mac to continue.'});if(req.headers['x-vareon-local']!=='1'||req.headers.origin&&!access.originAllowed(req,req.headers.origin))return res.status(403).json({error:'This sign-in request could not be verified.'});return true;};
+  app.use((req,res,next)=>{if(!localHost(req))return res.status(403).send('This dashboard is accessible only on its Mac.');if(!cookieOK(req))res.cookie(cookieName,session,{httpOnly:true,sameSite:'strict',secure:access.remote(req),path:'/'});next();});
+  app.use(express.json({limit:'8mb'}));
+  app.get('/api/auth/status',(req,res)=>res.json(localAuth.status(authToken(req))));
+  app.post('/api/auth/signup',async(req,res)=>{if(safeAuthChange(req,res)!==true)return;try{const result=await localAuth.signup(req.body||{});issueAuthCookie(req,res,result.session);res.json({account:result.account,recoveryCode:result.recoveryCode});}catch(error){res.status(error.status||400).json({error:error.message||'Account setup failed.'});}});
+  app.post('/api/auth/login',async(req,res)=>{if(safeAuthChange(req,res)!==true)return;try{const key=req.headers['tailscale-user-login']||req.socket.remoteAddress||'local';const result=await localAuth.login(req.body||{},key);issueAuthCookie(req,res,result.session);res.json({account:result.account});}catch(error){res.status(error.status||400).json({error:error.message||'Sign in failed.'});}});
+  app.post('/api/auth/recover',async(req,res)=>{if(safeAuthChange(req,res)!==true)return;try{const result=await localAuth.reset(req.body||{});issueAuthCookie(req,res,result.session);res.json({account:result.account});}catch(error){res.status(error.status||400).json({error:error.message||'Password reset failed.'});}});
+  app.post('/api/auth/logout',(req,res)=>{if(safeAuthChange(req,res)!==true)return;localAuth.logout(authToken(req));clearAuthCookie(req,res);res.json({ok:true});});
   // Dashboard access accepts loopback or the explicitly configured Tailscale owner.
   // All API calls still require the session cookie and same-origin verification.
   app.use('/api',(req,res,next)=>{
     if(backups.busy&&!['GET','HEAD'].includes(req.method))return res.status(503).json({error:'A backup or restore is in progress. Try again shortly.'});
     if(!localHost(req)||!cookieOK(req))return res.status(403).json({error:'Open the dashboard on this Mac to use this action.'});
+    if(req.path!=='/auth/status'&&!localAuth.tokenAccount(authToken(req)))return res.status(401).json({error:'Sign in to your VareonHQ workspace to continue.'});
     if(!['GET','HEAD'].includes(req.method)){
       if(req.headers['x-vareon-local']!=='1')return res.status(403).json({error:'Local request verification failed'});
       if(req.headers.origin && !access.originAllowed(req,req.headers.origin))return res.status(403).json({error:'Cross-origin requests are not allowed'});
     }
     next();
   });
-  app.use(express.json({limit:'8mb'}));
   app.get('/api/state',async(req,res)=>{
     const settings=store.settings(),chatgptSession=await chatgpt.status(),claudeSession=await claude.status();
     res.json({...snapshot(store),notifications:businessOps.notifications(new Date(),{gpt:chatgptSession.sharing}),onboardingProgress:businessOps.onboardings(),backupStatus:backups.config(),analytics:analytics.state(),reportList:reports.list(),followUps:followUps.summary(),conversations:store.list('conversations'),chatScopes:store.list('chatScopes'),messages:assistant.conversations.activeMessages(),finance:financeSummary(store),contactCount:store.list('contacts').length,settings,mcpConnections:connectors.list(),attachments:store.list('attachments').map(({id,name,contentType,size})=>({id,name,contentType,size})),assistantState:store.get('assistantState','current'),memoryFiles:actions.memory.list(),connections:{gpt:chatgptSession.sharing,chatgpt:chatgptSession,claude:claudeSession,outlook:!!settings.outlookConnected},oauthRequests:store.list('oauthRequests').filter(r=>r.status==='Pending'&&Date.parse(r.expiresAt)>Date.now()).map(({id,clientName,scope,expiresAt})=>({id,clientName,scope,expiresAt}))});
   });
+  app.post('/api/ai-hub/analyse',async(req,res)=>res.json(await aiHub.analyse()));
+  app.put('/api/ai-hub/daily',(req,res)=>{if(typeof req.body?.enabled!=='boolean')throw new Error('Choose whether daily briefings are on.');store.setting('aiHubDailyBriefing',req.body.enabled);store.log(`Daily AI board briefing ${req.body.enabled?'enabled':'paused'}`,'You');res.json({enabled:req.body.enabled});});
   app.get('/api/operations',(req,res)=>res.json({onboardings:businessOps.onboardings(),renewals:businessOps.renewals(),profitability:businessOps.profitability({start:req.query.start||'',end:req.query.end||'',clientId:req.query.clientId||''}),notifications:businessOps.notifications(),backups:backups.list(),backupSettings:backups.config(),timer:store.get('timeTimers','current')}));
   app.post('/api/onboarding/start',(req,res)=>res.json(businessOps.startOnboarding(req.body)));
   app.post('/api/renewals/:id/complete',(req,res)=>res.json(businessOps.completeRenewal(req.params.id,req.body.date)));
@@ -122,6 +143,7 @@ export async function createApp(options={}) {
   app.get('/api/approvals/:id/preview',(req,res)=>{const a=store.get('approvals',req.params.id);if(!a||a.kind!=='email')throw new Error('Email review not found');res.json({html:buildEmailHTML(a.payload,store.settings(),{requireSignature:false})});});
   app.post('/api/reviews',(req,res)=>res.json(reviews.request(req.body,'You')));
   app.post('/api/reviews/email/:id',async(req,res)=>res.json(await actions.execute('request_email_send',{emailId:req.params.id},'You')));
+  app.put('/api/approvals/:id/proposal',(req,res)=>res.json(reviews.revise(req.params.id,req.body)));
   app.post('/api/analytics/google/setup',async(req,res)=>res.json(await analytics.google.configure(req.body)));
   app.post('/api/analytics/google/authorize',async(req,res)=>res.json(await analytics.google.authorize()));
   app.post('/api/analytics/google/disconnect',async(req,res)=>res.json(await analytics.google.disconnect()));
@@ -138,6 +160,7 @@ export async function createApp(options={}) {
   app.put('/api/email-branding',(req,res)=>{const{signatureHtml,confirmed}=req.body;if(typeof signatureHtml!=='string'||signatureHtml.length>100000)throw new Error('Keep the signature under 100,000 characters');store.setting('emailSignatureHtml',cleanEmailHTML(signatureHtml));store.setting('emailSignatureConfirmed',confirmed===true);store.log('Updated Outlook email signature');res.json({ok:true});});
   app.get('/api/emails/:id/preview',(req,res)=>{const email=store.get('emails',req.params.id);if(!email)throw new Error('Email not found');res.json({html:buildEmailHTML(email,store.settings(),{requireSignature:false}),signatureConfirmed:!!store.settings().emailSignatureConfirmed});});
   app.get('/api/emails/:id/content',async(req,res)=>res.json(await outlook.content(req.params.id)));
+  app.post('/api/email-triages/:id/dismiss',(req,res)=>{const triage=store.get('emailTriages',req.params.id);if(!triage)throw new Error('Email assessment not found.');const updated=store.put('emailTriages',{...triage,reviewStatus:'Dismissed',reviewedAt:new Date().toISOString()});store.log('Dismissed AI email assessment','You',triage.emailId);res.json(updated);});
   app.post('/api/chat-files',express.raw({type:()=>true,limit:'25mb'}),async(req,res)=>res.json(await chatFiles.save({relativePath:decodeURIComponent(req.headers['x-vareon-file-path']||''),groupId:req.headers['x-vareon-file-group'],bytes:req.body})));
   app.get('/api/chat-files/:id',(req,res)=>res.json(chatFiles.get(req.params.id)));
   app.get('/api/chat-files/:id/text',(req,res)=>res.json(chatFiles.read(req.params.id,Number(req.query.offset||0),Number(req.query.limit||16000))));
@@ -148,6 +171,7 @@ export async function createApp(options={}) {
   app.post('/api/automation-rules/:id/dry-run',(req,res)=>res.json(dryRun(store,req.params.id)));
   app.post('/api/automation-alerts/:id/dismiss',(req,res)=>{const alert=store.get('automationAlerts',req.params.id);if(!alert)throw new Error('Alert not found.');res.json(store.put('automationAlerts',{...alert,dismissed:true,dismissedAt:new Date().toISOString()}));});
   app.put('/api/modules',async(req,res)=>{const {MODULES}=await import('../public/modules.js');const keys=MODULES.map(m=>m.key),input=req.body||{};for(const [k,v] of Object.entries(input))if(!keys.includes(k)||typeof v!=='boolean')throw new Error('Unknown module setting.');const modules={...(store.settings().modules||{}),...input};store.setting('modules',modules);store.log('Changed workspace modules','You');res.json(modules);});
+  app.put('/api/industry-profile',(req,res)=>{const {businessName,completeSetup,...input}=req.body||{},parsed=industryProfileSchema.safeParse(input);if(!parsed.success)throw new Error(parsed.error.issues[0]?.message||'Check the workspace setup.');store.db.exec('SAVEPOINT workspace_profile');try{if(typeof businessName==='string'&&businessName.trim())saveProfile(store,{...defaultProfile(store.settings()),businessName:businessName.trim()});const profile=saveIndustryProfile(store,parsed.data,{completeSetup:completeSetup===true});store.db.exec('RELEASE workspace_profile');res.json(profile);}catch(error){store.db.exec('ROLLBACK TO workspace_profile');store.db.exec('RELEASE workspace_profile');throw error;}});
   app.get('/api/portfolio',(req,res)=>res.json(portfolio(store)));
   app.post('/api/project-templates/:id/publish',(req,res)=>res.json(publishTemplate(store,req.params.id,req.body||{})));
   app.post('/api/prospects/:id/win',(req,res)=>{const result=winProspect(store,req.params.id,req.body||{});store.emit('ui',{action:'records_changed',collection:'projects'});res.json(result);});
@@ -259,10 +283,9 @@ export async function createApp(options={}) {
   app.get('/api/events',(req,res)=>{res.set({'Content-Type':'text/event-stream','Connection':'keep-alive'});res.flushHeaders();res.write('data: ready\n\n');const previous=Number(req.headers['last-event-id']);res.vareonCursor=Number.isSafeInteger(previous)&&previous>0?Math.min(previous,store.latestSequence()):store.latestSequence();listeners.add(res);req.on('close',()=>listeners.delete(res));});
   let heartbeat=0;const eventPump=setInterval(()=>{for(const res of listeners){for(const event of store.eventsAfter(res.vareonCursor)){res.write(`id: ${event.sequence}\nevent: workspace\ndata: ${JSON.stringify({type:event.type,data:event.data})}\n\n`);res.vareonCursor=event.sequence;}if(heartbeat%80===0)res.write(': heartbeat\n\n');}heartbeat++;},200);
   const watcher=watch(resolve(root,'public'),()=>{for(const res of listeners)res.write('data: reload\n\n');});
-  app.use((req,res,next)=>{if(!localHost(req))return res.status(403).send('This dashboard is accessible only on its Mac.');if(!cookieOK(req))res.cookie(cookieName,session,{httpOnly:true,sameSite:'strict',secure:access.remote(req),path:'/'});next();});
   app.use(express.static(resolve(root,'public'),{etag:false}));
   app.use((error,req,res,next)=>{if(res.headersSent)return next(error);const message=error.issues?error.issues.map(i=>`${i.path.join('.')}: ${i.message}`).join('; '):error.message;res.status(400).json({error:message||'Request failed'});});
-  let timer;if(!options.noScheduler){const tick=async()=>{if(backups.busy||meetingAnalysis)return;try{await backups.tick();if(backups.busy||meetingAnalysis)return;await scheduler.tick();await reports.tick();scanRules(store);}catch(e){console.error(e.message);}};timer=setInterval(tick,15000);reports.tick().catch(e=>console.error(e.message));backups.tick().catch(e=>console.error(e.message));mailSync.start();}
+  let timer;if(!options.noScheduler){const tick=async()=>{if(backups.busy||meetingAnalysis)return;try{await backups.tick();if(backups.busy||meetingAnalysis)return;await scheduler.tick();await reports.tick();scanRules(store);await emailTriage.tick();await aiHub.tick();}catch(e){console.error(e.message);}};timer=setInterval(tick,15000);reports.tick().catch(e=>console.error(e.message));backups.tick().catch(e=>console.error(e.message));mailSync.start();}
   return {app,store,actions,scheduler,mailSync,backups,close(){mailSync.stop();clearInterval(timer);clearInterval(eventPump);watcher.close();for(const res of listeners)res.end();connectors.close();store.close();}};
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)){

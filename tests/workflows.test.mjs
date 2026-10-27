@@ -17,6 +17,26 @@ test('deals and contacts use their own stage fields',()=>{
   assert.equal(statusField('tasks'),'status');
 });
 
+test('client, marketing and document workflows respond to their records without chaining',t=>{
+  const store=fixture(t);
+  saveRecord(store,'automationRules',{name:'New client follow-up',enabled:true,trigger:'client.created',actions:[{type:'createTask',title:'Welcome {title}'}]});
+  const client=saveRecord(store,'clients',{name:'Harbour Co'});
+  assert.equal(store.list('tasks').length,1);
+  assert.equal(store.list('tasks')[0].title,'Welcome Harbour Co');
+
+  saveRecord(store,'automationRules',{name:'Ready content',enabled:true,trigger:'post.status',conditions:[{field:'toStatus',op:'is',value:'Ready'}],actions:[{type:'addNote',title:'Review {title}'}]});
+  saveRecord(store,'automationRules',{name:'New note',enabled:true,trigger:'note.created',actions:[{type:'createTask',title:'Read {title}'}]});
+  const post=saveRecord(store,'posts',{title:'Launch',clientId:client.id,status:'Draft'});
+  saveRecord(store,'posts',{status:'Ready'},post.id);
+  assert.equal(store.list('notes').length,1);
+  assert.equal(store.list('tasks').length,1,'an action-created note must not trigger another rule');
+
+  saveRecord(store,'automationRules',{name:'New document',enabled:true,trigger:'document.created',actions:[{type:'createTask',title:'File {title}'}]});
+  saveRecord(store,'documents',{title:'Agreement',clientId:client.id});
+  assert.equal(store.list('tasks').length,2);
+  assert.ok(store.list('tasks').some(task=>task.title==='File Agreement'));
+});
+
 test('a deal-stage rule fires when a deal is moved, and respects its condition',t=>{
   const store=fixture(t),client=saveRecord(store,'clients',{name:'Harbour Co'});
   saveRecord(store,'automationRules',{name:'Celebrate wins',enabled:true,trigger:'deal.stage',conditions:[{field:'toStatus',op:'is',value:'Won'}],actions:[{type:'addNote',title:'Won {title} for {client}'}]});
